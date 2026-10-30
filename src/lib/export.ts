@@ -23,7 +23,7 @@ export async function boardToPdf(canvas: HTMLCanvasElement, board: Board) {
   const w = board.unit === 'mm' ? board.width : board.width * 0.75;
   const h = board.unit === 'mm' ? board.height : board.height * 0.75;
   const pdf = new jsPDF({ unit, format: [w, h], orientation: w > h ? 'landscape' : 'portrait', compress: true });
-  pdf.setProperties({ title: board.name, creator: 'ElenStudio' });
+  pdf.setProperties({ title: board.name, creator: 'Belvedere' });
   pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, w, h, undefined, 'NONE');
   return pdf.output('blob');
 }

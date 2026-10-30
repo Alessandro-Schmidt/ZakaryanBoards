@@ -5,12 +5,21 @@ import { uid } from '../lib/id';
 import { formatById, formatSizeLabel } from '../formats';
 import { NewBoardDialog, type NewBoardInput } from './NewBoardDialog';
 import { Icon } from './Icon';
+import { Logo } from './Logo';
+import { ThemePicker } from './ThemePicker';
+import { applyTheme, savedThemeId } from '../theme';
 
 const dateFmt = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
 
 export function Gallery({ onOpen }: { onOpen(id: string): void }) {
   const [boards, setBoards] = useState<Board[] | null>(null);
   const [creating, setCreating] = useState(false);
+  const [theme, setTheme] = useState(savedThemeId);
+
+  function pickTheme(id: string) {
+    applyTheme(id);
+    setTheme(id);
+  }
 
   const refresh = () => listBoards().then(setBoards);
   useEffect(() => {
@@ -57,13 +66,19 @@ export function Gallery({ onOpen }: { onOpen(id: string): void }) {
   return (
     <div className="gallery">
       <header className="gallery-header">
-        <div>
-          <p className="eyebrow">ElenStudio</p>
-          <h1>Seus vision boards</h1>
+        <div className="brand">
+          <Logo themeId={theme} size={64} />
+          <div>
+            <p className="eyebrow">Belvedere</p>
+            <h1>Seus vision boards</h1>
+          </div>
         </div>
-        <button className="btn primary large" onClick={() => setCreating(true)}>
-          <Icon name="plus" /> Novo board
-        </button>
+        <div className="row gap-m wrap">
+          <ThemePicker value={theme} onChange={pickTheme} />
+          <button className="btn primary large" onClick={() => setCreating(true)}>
+            <Icon name="plus" /> Novo board
+          </button>
+        </div>
       </header>
 
       {boards && boards.length === 0 && (
