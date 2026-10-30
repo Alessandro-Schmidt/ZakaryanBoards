@@ -10,6 +10,7 @@ A vision board editor made for **real printing** (A4, A3, posters) and for phone
 - **Background colour** from a ready-made palette or any colour.
 - **Drag images from another tab** (or from your computer) straight onto the page. They also go into the **Images** library, which is shared by all boards.
   - If a site blocks dragging, right-click → *Copy image* and paste with `⌘V` / `Ctrl+V`.
+  - **Pinterest**: dragging a pin brings in the full-size image. Where Pinterest blocks the drag, open **Drag from Pinterest** in the Images panel and add the *Belvedere* button to your bookmarks bar once; clicking it on Pinterest makes every pin draggable. Pasting a pin's link also works.
 - **Edit images** without losing the original (every edit becomes a new version):
   - **Crop**: free, or 1:1, 4:5, 3:4, 2:3, 3:2, 16:9, 9:16 and original.
   - **Lasso**: draw around just the object (say, only the car) to keep it or erase it.
@@ -20,6 +21,8 @@ A vision board editor made for **real printing** (A4, A3, posters) and for phone
 - **Install as an app**: in Chrome or Edge, use *Install Belvedere* in the address bar; in Safari on Mac, *File → Add to Dock*; on iPhone, *Share → Add to Home Screen*. The icons live in `public/icons` and are generated with `node scripts/generate-icons.cjs`.
 - **Gallery** with all your boards: open, rename, duplicate, delete. Everything saves automatically.
 - **Make it fit**: one click lays out every image on the board in tidy rows that fill the page without overlapping, keeping each image's proportions and resizing them as needed. Texts stay where they are, and `⌘Z` undoes it.
+- **Select several items**: drag on an empty spot to draw a selection box, or shift-click. Move them together, duplicate, delete or bring them forward as a group. `⌘A` selects everything.
+- **Pinch to zoom**: pinching the trackpad zooms the board around your fingers, not the page.
 - **Full canvas**: slide the images panel and the board settings away with the buttons at either end of the toolbar, or with `[` and `]`, and bring them back the same way.
 - Undo/redo (`⌘Z` / `⇧⌘Z`), duplicate (`⌘D`), delete (`⌫`), nudge with the arrow keys (`⇧` = 10 px).
 

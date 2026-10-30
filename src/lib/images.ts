@@ -154,6 +154,57 @@ function nameFromUrl(url: string) {
 export interface ImportResult {
   assets: Asset[];
   failed: boolean;
+  /** The failed drop came from Pinterest, so the Pinterest button is the way out. */
+  pinterest?: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// Pinterest: a drag often carries only the pin's page link, and thumbnails are small.
+
+const PIN_PAGE = /^https?:\/\/([a-z]+\.)?pinterest\.[a-z.]+\/pin\/(?:[^/]*--)?(\d+)/i;
+const PINIMG = /^(https?:\/\/i\.pinimg\.com\/)(?:\d+x|originals)(\/.*)$/i;
+
+export const isPinterestUrl = (url: string) => PIN_PAGE.test(url) || PINIMG.test(url) || /pin\.it\//i.test(url);
+
+/** Largest Pinterest image first: originals (whose extension can differ), then 736x, then what we were given. */
+function pinimgCandidates(url: string) {
+  const m = PINIMG.exec(url);
+  if (!m) return [url];
+  return unique([`${m[1]}originals${m[2]}`, `${m[1]}736x${m[2]}`, url]);
+}
+
+/** Looks a pin up through Pinterest's public widget API (JSONP, so no CORS needed). */
+function pinImageUrls(pinId: string): Promise<string[]> {
+  return new Promise((resolve) => {
+    const cb = `__belvederePin${pinId}_${Date.now()}`;
+    const script = document.createElement('script');
+    const done = (urls: string[]) => {
+      clearTimeout(timer);
+      delete (window as unknown as Record<string, unknown>)[cb];
+      script.remove();
+      resolve(urls);
+    };
+    const timer = window.setTimeout(() => done([]), 8000);
+    (window as unknown as Record<string, unknown>)[cb] = (res: { data?: { images?: Record<string, { url: string; width: number }> }[] }) => {
+      const images = Object.values(res?.data?.[0]?.images ?? {}).sort((a, b) => b.width - a.width);
+      done(images.map((i) => i.url));
+    };
+    script.src = `https://widgets.pinterest.com/v3/pidgets/pins/info/?pin_ids=${pinId}&callback=${cb}`;
+    script.onerror = () => done([]);
+    document.head.appendChild(script);
+  });
+}
+
+/** Expands the dropped URLs into the image URLs worth trying, best first. */
+async function candidateUrls(urls: string[]) {
+  const out: string[] = [];
+  for (const url of urls) {
+    const pin = PIN_PAGE.exec(url);
+    if (pin) for (const u of await pinImageUrls(pin[2])) out.push(...pinimgCandidates(u));
+    else out.push(...pinimgCandidates(url));
+  }
+  // Prefer real image URLs over page links.
+  return unique(out).sort((a, b) => Number(PIN_PAGE.test(a)) - Number(PIN_PAGE.test(b)));
 }
 
 export async function importPayload(p: DropPayload): Promise<ImportResult> {
@@ -167,7 +218,7 @@ export async function importPayload(p: DropPayload): Promise<ImportResult> {
   }
   if (assets.length) return { assets, failed: false };
   // A drop from another tab usually carries several candidate URLs; the first that loads wins.
-  for (const url of p.urls) {
+  for (const url of await candidateUrls(p.urls)) {
     try {
       assets.push(await createAsset(await fetchImageBlob(url), nameFromUrl(url)));
       return { assets, failed: false };
@@ -175,5 +226,5 @@ export async function importPayload(p: DropPayload): Promise<ImportResult> {
       /* try the next candidate */
     }
   }
-  return { assets, failed: p.urls.length > 0 || p.files.length > 0 };
+  return { assets, failed: p.urls.length > 0 || p.files.length > 0, pinterest: p.urls.some(isPinterestUrl) };
 }

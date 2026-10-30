@@ -14,19 +14,26 @@ export interface BoardCanvasHandle {
   toCanvas(pixelRatio: number): HTMLCanvasElement;
   /** Converts a viewport point into page coordinates. */
   clientToBoard(clientX: number, clientY: number): { x: number; y: number };
+  /** Converts a page point into viewport coordinates. */
+  boardToClient(x: number, y: number): { x: number; y: number };
 }
 
 interface Props {
   board: Board;
   assets: Map<string, Asset>;
   zoom: number;
-  selectedId: string | null;
-  onSelect(id: string | null): void;
+  selectedIds: string[];
+  onSelect(ids: string[]): void;
   onChange(id: string, patch: Partial<BoardElement>, key?: string): void;
+  /** Commits several elements at once (moving a multi-selection), as one undo step. */
+  onChangeMany(patches: Map<string, Partial<BoardElement>>): void;
   onEditText(id: string): void;
 }
 
 type Guide = { points: number[] };
+type Marquee = { x0: number; y0: number; x1: number; y1: number; base: string[] };
+type PointerEvt = Konva.KonvaEventObject<MouseEvent | TouchEvent>;
+const additive = (e: PointerEvt) => 'shiftKey' in e.evt && (e.evt.shiftKey || e.evt.metaKey || e.evt.ctrlKey);
 
 function useAssetImage(asset: Asset | undefined) {
   const [img, setImg] = useState<HTMLImageElement>();
@@ -44,7 +51,7 @@ function useAssetImage(asset: Asset | undefined) {
 const SHADOW = { shadowColor: '#000', shadowOpacity: 0.32, shadowOffsetX: 0 } as const;
 
 export const BoardCanvas = forwardRef<BoardCanvasHandle, Props>(function BoardCanvas(
-  { board, assets, zoom, selectedId, onSelect, onChange, onEditText },
+  { board, assets, zoom, selectedIds, onSelect, onChange, onChangeMany, onEditText },
   ref,
 ) {
   const { w, h } = boardPixelSize(board);
@@ -64,14 +71,68 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, Props>(function BoardCa
     });
   }, []);
 
-  const selected = board.elements.find((e) => e.id === selectedId);
+  const multi = selectedIds.length > 1;
+  const selected = multi ? undefined : board.elements.find((e) => e.id === selectedIds[0]);
   useEffect(() => {
     const tr = trRef.current;
     if (!tr) return;
-    const node = selectedId ? stageRef.current?.findOne('#' + selectedId) : undefined;
-    tr.nodes(node ? [node] : []);
+    const nodes = selectedIds.map((id) => stageRef.current?.findOne('#' + id)).filter((n): n is Konva.Node => !!n);
+    tr.nodes(nodes);
     tr.getLayer()?.batchDraw();
-  }, [selectedId, board.elements]);
+  }, [selectedIds, board.elements]);
+
+  // Mouse down on an item: shift/⌘ toggles it; otherwise it becomes the selection unless it is already part of it
+  // (so a group can be dragged). A plain click without dragging narrows a group down to that item.
+  const pick = (id: string, e: PointerEvt) => {
+    if (additive(e)) onSelect(selectedIds.includes(id) ? selectedIds.filter((x) => x !== id) : [...selectedIds, id]);
+    else if (!selectedIds.includes(id)) onSelect([id]);
+  };
+  const clickPick = (id: string, e: PointerEvt) => {
+    if (!additive(e) && multi) onSelect([id]);
+  };
+  const ensurePicked = (id: string) => {
+    if (!selectedIds.includes(id)) onSelect([id]);
+  };
+
+  // ---- rubber-band selection --------------------------------------------------------
+  const [marquee, setMarquee] = useState<Marquee | null>(null);
+  const marqueeRef = useRef<Marquee | null>(null);
+  const setBand = (m: Marquee | null) => {
+    marqueeRef.current = m;
+    setMarquee(m);
+  };
+  function startMarquee(e: Konva.KonvaEventObject<MouseEvent>) {
+    const p = layerRef.current!.getRelativePointerPosition()!;
+    const base = additive(e) ? selectedIds : [];
+    if (!additive(e)) onSelect([]);
+    setBand({ x0: p.x, y0: p.y, x1: p.x, y1: p.y, base });
+    const stage = stageRef.current!;
+    const move = (ev: MouseEvent) => {
+      stage.setPointersPositions(ev);
+      const q = layerRef.current!.getRelativePointerPosition()!;
+      if (marqueeRef.current) setBand({ ...marqueeRef.current, x1: q.x, y1: q.y });
+    };
+    const up = () => {
+      window.removeEventListener('mousemove', move);
+      window.removeEventListener('mouseup', up);
+      const m = marqueeRef.current;
+      setBand(null);
+      if (!m) return;
+      const box = { x: Math.min(m.x0, m.x1), y: Math.min(m.y0, m.y1), width: Math.abs(m.x1 - m.x0), height: Math.abs(m.y1 - m.y0) };
+      if (box.width * zoom < 4 && box.height * zoom < 4) return;
+      const layer = layerRef.current!;
+      const hits = board.elements
+        .filter((el) => {
+          const n = stage.findOne('#' + el.id);
+          return n && Konva.Util.haveIntersection(box, n.getClientRect({ relativeTo: layer }));
+        })
+        .map((el) => el.id);
+      onSelect(Array.from(new Set([...m.base, ...hits])));
+    };
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+  }
+  const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#7b6cff';
 
   useImperativeHandle(
     ref,
@@ -96,12 +157,18 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, Props>(function BoardCa
         const r = stageRef.current!.container().getBoundingClientRect();
         return { x: (clientX - r.left - STAGE_PAD) / zoom, y: (clientY - r.top - STAGE_PAD) / zoom };
       },
+      boardToClient(x, y) {
+        const r = stageRef.current!.container().getBoundingClientRect();
+        return { x: r.left + STAGE_PAD + x * zoom, y: r.top + STAGE_PAD + y * zoom };
+      },
     }),
     [w, h, zoom],
   );
 
   function handleDragMove(e: Konva.KonvaEventObject<DragEvent>) {
     const node = e.target;
+    // A group moves as one; snapping a single member would pull it out of line.
+    if (multi && selectedIds.includes(node.id())) return;
     const layer = layerRef.current!;
     const box = node.getClientRect({ relativeTo: layer });
     const thr = SNAP_PX / zoom;
@@ -122,14 +189,28 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, Props>(function BoardCa
     setGuides(found);
   }
 
+  // Every node of a dragged group fires its own dragend; commit them all once, as a single undo step.
+  const groupCommit = useRef(0);
   function handleDragEnd(el: BoardElement, e: Konva.KonvaEventObject<DragEvent>) {
     setGuides([]);
+    if (multi && selectedIds.includes(el.id)) {
+      if (groupCommit.current) return;
+      groupCommit.current = window.setTimeout(() => {
+        groupCommit.current = 0;
+        const stage = stageRef.current!;
+        onChangeMany(
+          new Map(selectedIds.flatMap((id) => {
+            const n = stage.findOne('#' + id);
+            return n ? [[id, { x: n.x(), y: n.y() }] as const] : [];
+          })),
+        );
+      });
+      return;
+    }
     onChange(el.id, { x: e.target.x(), y: e.target.y() });
   }
 
-  const deselectIfEmpty = (e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
-    if (e.target === e.target.getStage() || e.target.name() === 'page-bg') onSelect(null);
-  };
+  const isEmpty = (e: PointerEvt) => e.target === e.target.getStage() || e.target.name() === 'page-bg';
 
   const isText = selected?.type === 'text';
 
@@ -138,8 +219,8 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, Props>(function BoardCa
       ref={stageRef}
       width={w * zoom + STAGE_PAD * 2}
       height={h * zoom + STAGE_PAD * 2}
-      onMouseDown={deselectIfEmpty}
-      onTouchStart={deselectIfEmpty}
+      onMouseDown={(e) => isEmpty(e) && e.evt.button === 0 && startMarquee(e)}
+      onTouchStart={(e) => isEmpty(e) && onSelect([])}
     >
       <Layer ref={layerRef} x={STAGE_PAD} y={STAGE_PAD} scaleX={zoom} scaleY={zoom}>
         <Group clipX={0} clipY={0} clipWidth={w} clipHeight={h}>
@@ -150,7 +231,9 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, Props>(function BoardCa
                 key={el.id}
                 el={el}
                 asset={assets.get(el.assetId)}
-                onSelect={() => onSelect(el.id)}
+                onPick={(e) => pick(el.id, e)}
+                onClickPick={(e) => clickPick(el.id, e)}
+                onDragStart={() => ensurePicked(el.id)}
                 onDragMove={handleDragMove}
                 onDragEnd={(e) => handleDragEnd(el, e)}
                 onChange={(p) => onChange(el.id, p)}
@@ -159,7 +242,9 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, Props>(function BoardCa
               <TextNode
                 key={el.id}
                 el={el}
-                onSelect={() => onSelect(el.id)}
+                onPick={(e) => pick(el.id, e)}
+                onClickPick={(e) => clickPick(el.id, e)}
+                onDragStart={() => ensurePicked(el.id)}
                 onDblClick={() => onEditText(el.id)}
                 onDragMove={handleDragMove}
                 onDragEnd={(e) => handleDragEnd(el, e)}
@@ -172,12 +257,36 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, Props>(function BoardCa
           {guides.map((g, i) => (
             <Line key={i} points={g.points} stroke="#ff2d92" strokeWidth={1 / zoom} dash={[4 / zoom, 4 / zoom]} listening={false} />
           ))}
+          {marquee && (
+            <Rect
+              x={Math.min(marquee.x0, marquee.x1)}
+              y={Math.min(marquee.y0, marquee.y1)}
+              width={Math.abs(marquee.x1 - marquee.x0)}
+              height={Math.abs(marquee.y1 - marquee.y0)}
+              fill={accent}
+              opacity={0.16}
+              listening={false}
+            />
+          )}
+          {marquee && (
+            <Rect
+              x={Math.min(marquee.x0, marquee.x1)}
+              y={Math.min(marquee.y0, marquee.y1)}
+              width={Math.abs(marquee.x1 - marquee.x0)}
+              height={Math.abs(marquee.y1 - marquee.y0)}
+              stroke={accent}
+              strokeWidth={1.5 / zoom}
+              listening={false}
+            />
+          )}
           <Transformer
             ref={trRef}
-            rotateEnabled
+            rotateEnabled={!multi}
             keepRatio={!isText}
             enabledAnchors={
-              isText
+              multi
+                ? []
+                : isText
                 ? ['top-left', 'top-right', 'bottom-left', 'bottom-right', 'middle-left', 'middle-right']
                 : ['top-left', 'top-right', 'bottom-left', 'bottom-right']
             }
@@ -203,13 +312,15 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, Props>(function BoardCa
 
 interface NodeProps<T> {
   el: T;
-  onSelect(): void;
+  onPick(e: PointerEvt): void;
+  onClickPick(e: PointerEvt): void;
+  onDragStart(): void;
   onDragMove(e: Konva.KonvaEventObject<DragEvent>): void;
   onDragEnd(e: Konva.KonvaEventObject<DragEvent>): void;
   onChange(p: Partial<T>): void;
 }
 
-function ImageNode({ el, asset, onSelect, onDragMove, onDragEnd, onChange }: NodeProps<ImageElement> & { asset?: Asset }) {
+function ImageNode({ el, asset, onPick, onClickPick, onDragStart, onDragMove, onDragEnd, onChange }: NodeProps<ImageElement> & { asset?: Asset }) {
   const img = useAssetImage(asset);
   return (
     <Group
@@ -219,9 +330,10 @@ function ImageNode({ el, asset, onSelect, onDragMove, onDragEnd, onChange }: Nod
       rotation={el.rotation}
       opacity={el.opacity}
       draggable
-      onMouseDown={onSelect}
-      onTap={onSelect}
-      onDragStart={onSelect}
+      onMouseDown={onPick}
+      onTap={onPick}
+      onClick={onClickPick}
+      onDragStart={onDragStart}
       onDragMove={onDragMove}
       onDragEnd={onDragEnd}
       onTransformEnd={(e) => {
@@ -249,7 +361,7 @@ function ImageNode({ el, asset, onSelect, onDragMove, onDragEnd, onChange }: Nod
   );
 }
 
-function TextNode({ el, onSelect, onDblClick, onDragMove, onDragEnd, onChange }: NodeProps<TextElement> & { onDblClick(): void }) {
+function TextNode({ el, onPick, onClickPick, onDragStart, onDblClick, onDragMove, onDragEnd, onChange }: NodeProps<TextElement> & { onDblClick(): void }) {
   return (
     <Text
       id={el.id}
@@ -268,9 +380,10 @@ function TextNode({ el, onSelect, onDblClick, onDragMove, onDragEnd, onChange }:
       lineHeight={el.lineHeight}
       {...(el.shadow ? { ...SHADOW, shadowBlur: el.fontSize * 0.25, shadowOffsetY: el.fontSize * 0.06 } : {})}
       draggable
-      onMouseDown={onSelect}
-      onTap={onSelect}
-      onDragStart={onSelect}
+      onMouseDown={onPick}
+      onTap={onPick}
+      onClick={onClickPick}
+      onDragStart={onDragStart}
       onDblClick={onDblClick}
       onDblTap={onDblClick}
       onDragMove={onDragMove}

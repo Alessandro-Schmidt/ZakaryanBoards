@@ -10,6 +10,8 @@ const TEXT_SWATCHES = ['#111111', '#ffffff', '#1f2a44', '#8b6f47', '#b08d57', '#
 interface Props {
   board: Board;
   selected?: BoardElement;
+  /** How many elements are selected; above 1 the panel shows actions for the whole group. */
+  selectionCount: number;
   textRef: RefObject<HTMLTextAreaElement | null>;
   onBoard(patch: Partial<Board>, key?: string): void;
   onElement(patch: Partial<BoardElement>, key?: string): void;
@@ -46,6 +48,26 @@ function Toggle({ label, checked, onChange }: { label: string; checked: boolean;
 export function Inspector(p: Props) {
   const { board, selected } = p;
 
+  if (p.selectionCount > 1) {
+    return (
+      <aside className="glass panel inspector">
+        <header className="panel-header">
+          <h3>{p.selectionCount} selected</h3>
+        </header>
+        <section className="group">
+          <p className="muted small">Drag any of them to move them together. Shift-click to add or remove one.</p>
+          <span className="eyebrow">Arrange</span>
+          <div className="button-grid">
+            <button className="btn" onClick={() => p.onLayer('front')}><Icon name="front" /> Front</button>
+            <button className="btn" onClick={() => p.onLayer('back')}><Icon name="backward" /> Back</button>
+          </div>
+          <button className="btn" onClick={p.onDuplicate}><Icon name="copy" /> Duplicate</button>
+          <button className="btn danger-soft full" onClick={p.onDelete}><Icon name="trash" /> Remove from board</button>
+        </section>
+      </aside>
+    );
+  }
+
   if (!selected) {
     const f = formatById(board.formatId);
     return (
@@ -73,6 +95,8 @@ export function Inspector(p: Props) {
             <li>Double-click a text to edit it.</li>
             <li><kbd>⌘Z</kbd> undo, <kbd>⌘D</kbd> duplicate, <kbd>⌫</kbd> delete.</li>
             <li><kbd>[</kbd> and <kbd>]</kbd> hide or show the side panels.</li>
+            <li>Drag on an empty spot to select several items, or shift-click them. <kbd>⌘A</kbd> selects all.</li>
+            <li>Pinch the trackpad to zoom the board.</li>
             <li>Drag the handles to rotate and resize; elements snap to the centre and edges.</li>
           </ul>
         </section>

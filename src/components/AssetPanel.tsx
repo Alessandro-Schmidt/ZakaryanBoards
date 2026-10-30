@@ -11,9 +11,10 @@ interface Props {
   onAdd(asset: Asset): void;
   onEdit(asset: Asset): void;
   onDelete(asset: Asset): void;
+  onPinterest(): void;
 }
 
-export function AssetPanel({ assets, onUpload, onAdd, onEdit, onDelete }: Props) {
+export function AssetPanel({ assets, onUpload, onAdd, onEdit, onDelete, onPinterest }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
   return (
     <aside className="glass panel assets-panel">
@@ -45,6 +46,9 @@ export function AssetPanel({ assets, onUpload, onAdd, onEdit, onDelete }: Props)
           <kbd>⌘V</kbd> / <kbd>Ctrl V</kbd>.
         </p>
       </div>
+      <button className="btn small pinterest-btn" onClick={onPinterest}>
+        <Icon name="pin" size={16} /> Drag from Pinterest
+      </button>
 
       <div className="asset-grid">
         {assets.map((a) => (

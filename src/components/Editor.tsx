@@ -12,6 +12,7 @@ import { ExportDialog } from './ExportDialog';
 import { FormatPicker, type PageSpec } from './FormatPicker';
 import { ImageEditor } from './ImageEditor';
 import { Inspector } from './Inspector';
+import { PinterestHelp } from './PinterestHelp';
 import { Icon } from './Icon';
 
 export function Editor({ boardId, onBack }: { boardId: string; onBack(): void }) {
@@ -37,6 +38,7 @@ type Modal =
   | { kind: 'image'; asset: Asset; elementId?: string }
   | { kind: 'export' }
   | { kind: 'format'; spec: PageSpec }
+  | { kind: 'pinterest' }
   | null;
 
 function isTyping(e: Event) {
@@ -59,7 +61,8 @@ function EditorInner({ initial, initialAssets, onBack }: { initial: Board; initi
   const { board, update, undo, redo, canUndo, canRedo } = useBoardHistory(initial);
   const [assets, setAssets] = useState(initialAssets);
   const assetMap = useMemo(() => new Map(assets.map((a) => [a.id, a])), [assets]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const setSelectedId = (id: string | null) => setSelectedIds(id ? [id] : []);
   const [modal, setModal] = useState<Modal>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [dropActive, setDropActive] = useState(false);
@@ -82,7 +85,8 @@ function EditorInner({ initial, initialAssets, onBack }: { initial: Board; initi
   const dragDepth = useRef(0);
 
   const { w, h } = boardPixelSize(board);
-  const selected = board.elements.find((e) => e.id === selectedId);
+  const selection = board.elements.filter((e) => selectedIds.includes(e.id));
+  const selected = selection.length === 1 ? selection[0] : undefined;
 
   // ---- toasts -----------------------------------------------------------
   const toastTimer = useRef<number>(undefined);
@@ -104,6 +108,57 @@ function EditorInner({ initial, initialAssets, onBack }: { initial: Board; initi
   const fitZoom = Math.max(0.05, Math.min((area.w - STAGE_PAD * 2 - 16) / w, (area.h - STAGE_PAD * 2 - 16) / h));
   const zoom = zoomMode === 'fit' ? fitZoom : zoomMode;
   const zoomBy = (k: number) => setZoomMode(Math.min(8, Math.max(0.05, zoom * k)));
+
+  // Pinch on a trackpad zooms the board around the fingers, never the whole page.
+  const zoomAnchor = useRef<{ x: number; y: number; clientX: number; clientY: number } | null>(null);
+  const zoomAt = (k: number, clientX: number, clientY: number) => {
+    const b = canvasRef.current?.clientToBoard(clientX, clientY);
+    if (b) zoomAnchor.current = { ...b, clientX, clientY };
+    zoomBy(k);
+  };
+  useLayoutEffect(() => {
+    const a = zoomAnchor.current;
+    const area = areaRef.current;
+    if (!a || !area || !canvasRef.current) return;
+    zoomAnchor.current = null;
+    const p = canvasRef.current.boardToClient(a.x, a.y);
+    area.scrollLeft += p.x - a.clientX;
+    area.scrollTop += p.y - a.clientY;
+  }, [zoom]);
+  const zoomAtRef = useRef(zoomAt);
+  zoomAtRef.current = zoomAt;
+  useEffect(() => {
+    // Chrome, Edge and Firefox report a pinch as a wheel event with ctrlKey set.
+    const onWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey) return;
+      e.preventDefault();
+      zoomAtRef.current(Math.exp(-Math.max(-50, Math.min(50, e.deltaY)) * 0.01), e.clientX, e.clientY);
+    };
+    // Safari sends its own gesture events.
+    type Gesture = Event & { scale: number; clientX: number; clientY: number };
+    let last = 1;
+    const onGestureStart = (e: Event) => {
+      e.preventDefault();
+      last = 1;
+    };
+    const onGestureChange = (e: Event) => {
+      const g = e as Gesture;
+      e.preventDefault();
+      zoomAtRef.current(g.scale / last, g.clientX, g.clientY);
+      last = g.scale;
+    };
+    const block = (e: Event) => e.preventDefault();
+    window.addEventListener('wheel', onWheel, { passive: false });
+    window.addEventListener('gesturestart', onGestureStart);
+    window.addEventListener('gesturechange', onGestureChange);
+    window.addEventListener('gestureend', block);
+    return () => {
+      window.removeEventListener('wheel', onWheel);
+      window.removeEventListener('gesturestart', onGestureStart);
+      window.removeEventListener('gesturechange', onGestureChange);
+      window.removeEventListener('gestureend', block);
+    };
+  }, []);
 
   // ---- autosave -------------------------------------------------------------
   const latest = useRef(board);
@@ -143,6 +198,11 @@ function EditorInner({ initial, initialAssets, onBack }: { initial: Board; initi
   const setElements = (elements: BoardElement[], key?: string) => update({ ...board, elements }, key);
   const patchElement = (id: string, patch: Partial<BoardElement>, key?: string) =>
     setElements(board.elements.map((e) => (e.id === id ? ({ ...e, ...patch } as BoardElement) : e)), key);
+  /** Several elements in one history step (moving a multi-selection, nudging it). */
+  const patchMany = (patches: Map<string, Partial<BoardElement>>, key?: string) =>
+    setElements(board.elements.map((e) => (patches.has(e.id) ? ({ ...e, ...patches.get(e.id) } as BoardElement) : e)), key);
+  const nudge = (dx: number, dy: number) =>
+    patchMany(new Map(selection.map((e) => [e.id, { x: e.x + dx, y: e.y + dy }])), 'nudge');
 
   function addImage(asset: Asset, at?: { x: number; y: number }, base = board) {
     const { w: bw, h: bh } = boardPixelSize(base);
@@ -181,22 +241,22 @@ function EditorInner({ initial, initialAssets, onBack }: { initial: Board; initi
   }
 
   function removeSelected() {
-    if (!selectedId) return;
-    setElements(board.elements.filter((e) => e.id !== selectedId));
-    setSelectedId(null);
+    if (!selection.length) return;
+    setElements(board.elements.filter((e) => !selectedIds.includes(e.id)));
+    setSelectedIds([]);
   }
 
   function duplicateSelected() {
-    if (!selected) return;
-    const copy = { ...selected, id: uid(), x: selected.x + 24, y: selected.y + 24 };
-    setElements([...board.elements, copy]);
-    setSelectedId(copy.id);
+    if (!selection.length) return;
+    const copies = selection.map((e) => ({ ...e, id: uid(), x: e.x + 24, y: e.y + 24 }));
+    setElements([...board.elements, ...copies]);
+    setSelectedIds(copies.map((c) => c.id));
   }
 
   function moveLayer(dir: 'front' | 'back') {
-    if (!selected) return;
-    const rest = board.elements.filter((e) => e.id !== selected.id);
-    setElements(dir === 'front' ? [...rest, selected] : [selected, ...rest]);
+    if (!selection.length) return;
+    const rest = board.elements.filter((e) => !selectedIds.includes(e.id));
+    setElements(dir === 'front' ? [...rest, ...selection] : [...selection, ...rest]);
   }
 
   function centerSelected() {
@@ -257,7 +317,7 @@ function EditorInner({ initial, initialAssets, onBack }: { initial: Board; initi
     if (!payload.files.length && !payload.urls.length) return;
     setImporting(true);
     try {
-      const { assets: added, failed } = await importPayload(payload);
+      const { assets: added, failed, pinterest } = await importPayload(payload);
       if (added.length) {
         await addAssets(added);
         if (place) {
@@ -265,6 +325,8 @@ function EditorInner({ initial, initialAssets, onBack }: { initial: Board; initi
           setToast(null);
         }
         else notify(added.length > 1 ? `${added.length} images added` : 'Image added to the library');
+      } else if (failed && pinterest) {
+        setModal({ kind: 'pinterest' });
       } else if (failed) {
         notify('This site blocks dragging the image. Right-click → "Copy image" and paste here with ⌘V / Ctrl+V.');
       }
@@ -333,8 +395,10 @@ function EditorInner({ initial, initialAssets, onBack }: { initial: Board; initi
   }
 
   // ---- paste & keyboard ---------------------------------------------------------
-  const handlers = useRef({ handleImport, removeSelected, duplicateSelected, undo, redo, patchElement, selected, modal, togglePanel });
-  handlers.current = { handleImport, removeSelected, duplicateSelected, undo, redo, patchElement, selected, modal, togglePanel };
+  const selectAll = () => setSelectedIds(board.elements.map((e) => e.id));
+  const keyHandlers = { handleImport, removeSelected, duplicateSelected, undo, redo, nudge, selectAll, selection, modal, togglePanel };
+  const handlers = useRef(keyHandlers);
+  handlers.current = keyHandlers;
 
   useEffect(() => {
     const onPaste = (e: ClipboardEvent) => {
@@ -357,11 +421,14 @@ function EditorInner({ initial, initialAssets, onBack }: { initial: Board; initi
       } else if (mod && k === 'y') {
         e.preventDefault();
         H.redo();
+      } else if (mod && k === 'a') {
+        e.preventDefault();
+        H.selectAll();
       } else if (mod && k === 'd') {
         e.preventDefault();
         H.duplicateSelected();
       } else if (e.key === 'Delete' || e.key === 'Backspace') {
-        if (H.selected) {
+        if (H.selection.length) {
           e.preventDefault();
           H.removeSelected();
         }
@@ -370,12 +437,12 @@ function EditorInner({ initial, initialAssets, onBack }: { initial: Board; initi
         H.togglePanel(e.key === '[' ? 'left' : 'right');
       } else if (e.key === 'Escape') {
         setSelectedId(null);
-      } else if (H.selected && e.key.startsWith('Arrow')) {
+      } else if (H.selection.length && e.key.startsWith('Arrow')) {
         e.preventDefault();
         const step = e.shiftKey ? 10 : 1;
         const dx = e.key === 'ArrowLeft' ? -step : e.key === 'ArrowRight' ? step : 0;
         const dy = e.key === 'ArrowUp' ? -step : e.key === 'ArrowDown' ? step : 0;
-        H.patchElement(H.selected.id, { x: H.selected.x + dx, y: H.selected.y + dy }, 'nudge');
+        H.nudge(dx, dy);
       }
     };
     window.addEventListener('paste', onPaste);
@@ -450,6 +517,7 @@ function EditorInner({ initial, initialAssets, onBack }: { initial: Board; initi
         onAdd={(a) => placeImages([a])}
         onEdit={(a) => setModal({ kind: 'image', asset: a })}
         onDelete={removeAsset}
+        onPinterest={() => setModal({ kind: 'pinterest' })}
       />
 
       <main className="canvas-area" ref={areaRef}>
@@ -461,8 +529,9 @@ function EditorInner({ initial, initialAssets, onBack }: { initial: Board; initi
             board={board}
             assets={assetMap}
             zoom={zoom}
-            selectedId={selectedId}
-            onSelect={setSelectedId}
+            selectedIds={selectedIds}
+            onSelect={setSelectedIds}
+            onChangeMany={(patches) => patchMany(patches)}
             onChange={patchElement}
             onEditText={(id) => {
               setSelectedId(id);
@@ -479,6 +548,7 @@ function EditorInner({ initial, initialAssets, onBack }: { initial: Board; initi
       <Inspector
         board={board}
         selected={selected}
+        selectionCount={selection.length}
         textRef={textRef}
         onBoard={(patch, key) => update({ ...board, ...patch }, key)}
         onElement={(patch, key) => selected && patchElement(selected.id, patch, key)}
@@ -514,6 +584,7 @@ function EditorInner({ initial, initialAssets, onBack }: { initial: Board; initi
           onSave={(blob) => saveEditedImage(blob, modal.asset, modal.elementId)}
         />
       )}
+      {modal?.kind === 'pinterest' && <PinterestHelp onClose={() => setModal(null)} />}
       {modal?.kind === 'export' && <ExportDialog board={board} canvasRef={canvasRef} onClose={() => setModal(null)} />}
       {modal?.kind === 'format' && (
         <div className="modal-backdrop" onPointerDown={(e) => e.target === e.currentTarget && setModal(null)}>
