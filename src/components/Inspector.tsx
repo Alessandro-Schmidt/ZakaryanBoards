@@ -50,29 +50,29 @@ export function Inspector(p: Props) {
     const f = formatById(board.formatId);
     return (
       <aside className="glass panel inspector">
-        <header className="panel-header"><h3>Página</h3></header>
+        <header className="panel-header"><h3>Page</h3></header>
         <section className="group">
-          <span className="eyebrow">Formato</span>
+          <span className="eyebrow">Format</span>
           <button className="format-summary" onClick={p.onChangeFormat}>
             <Icon name={f.group === 'screen' ? 'phone' : 'page'} />
             <span>
-              <strong>{f.id === 'custom' ? 'Personalizado' : f.label}</strong>
+              <strong>{f.id === 'custom' ? 'Custom' : f.label}</strong>
               <small>{formatSizeLabel(board.unit, board.width, board.height)}</small>
             </span>
-            <em>Alterar</em>
+            <em>Change</em>
           </button>
         </section>
         <section className="group">
-          <span className="eyebrow">Cor de fundo</span>
+          <span className="eyebrow">Background colour</span>
           <ColorPicker value={board.background} onChange={(c) => p.onBoard({ background: c }, 'bg')} />
         </section>
         <section className="group tips">
-          <span className="eyebrow">Dicas</span>
+          <span className="eyebrow">Tips</span>
           <ul>
-            <li>Arraste imagens de outra aba direto para a página.</li>
-            <li>Clique duplo em um texto para editá-lo.</li>
-            <li><kbd>⌘Z</kbd> desfaz, <kbd>⌘D</kbd> duplica, <kbd>⌫</kbd> apaga.</li>
-            <li>Segure as alças para girar e redimensionar; os elementos encaixam no centro e nas bordas.</li>
+            <li>Drag images from another tab straight onto the page.</li>
+            <li>Double-click a text to edit it.</li>
+            <li><kbd>⌘Z</kbd> undo, <kbd>⌘D</kbd> duplicate, <kbd>⌫</kbd> delete.</li>
+            <li>Drag the handles to rotate and resize; elements snap to the centre and edges.</li>
           </ul>
         </section>
       </aside>
@@ -81,24 +81,24 @@ export function Inspector(p: Props) {
 
   const common = (
     <>
-      <Slider label="Opacidade" value={Math.round(selected.opacity * 100)} min={5} max={100} suffix="%"
+      <Slider label="Opacity" value={Math.round(selected.opacity * 100)} min={5} max={100} suffix="%"
         onChange={(v) => p.onElement({ opacity: v / 100 }, 'opacity')} />
-      <Slider label="Rotação" value={Math.round(selected.rotation)} min={-180} max={180} suffix="°"
+      <Slider label="Rotation" value={Math.round(selected.rotation)} min={-180} max={180} suffix="°"
         onChange={(v) => p.onElement({ rotation: v }, 'rotation')} />
-      <Toggle label="Sombra" checked={selected.shadow} onChange={(v) => p.onElement({ shadow: v })} />
+      <Toggle label="Shadow" checked={selected.shadow} onChange={(v) => p.onElement({ shadow: v })} />
     </>
   );
 
   const actions = (
     <section className="group">
-      <span className="eyebrow">Organizar</span>
+      <span className="eyebrow">Arrange</span>
       <div className="button-grid">
-        <button className="btn" onClick={() => p.onLayer('front')}><Icon name="front" /> Frente</button>
-        <button className="btn" onClick={() => p.onLayer('back')}><Icon name="backward" /> Trás</button>
-        <button className="btn" onClick={p.onCenter}><Icon name="center" /> Centralizar</button>
-        <button className="btn" onClick={p.onDuplicate}><Icon name="copy" /> Duplicar</button>
+        <button className="btn" onClick={() => p.onLayer('front')}><Icon name="front" /> Front</button>
+        <button className="btn" onClick={() => p.onLayer('back')}><Icon name="backward" /> Back</button>
+        <button className="btn" onClick={p.onCenter}><Icon name="center" /> Centre</button>
+        <button className="btn" onClick={p.onDuplicate}><Icon name="copy" /> Duplicate</button>
       </div>
-      <button className="btn danger-soft full" onClick={p.onDelete}><Icon name="trash" /> Remover do board</button>
+      <button className="btn danger-soft full" onClick={p.onDelete}><Icon name="trash" /> Remove from board</button>
     </section>
   );
 
@@ -106,19 +106,19 @@ export function Inspector(p: Props) {
     const el = selected;
     return (
       <aside className="glass panel inspector">
-        <header className="panel-header"><h3>Imagem</h3></header>
+        <header className="panel-header"><h3>Image</h3></header>
         <section className="group">
           <button className="btn primary full" onClick={() => p.onEditImage(el)}>
-            <Icon name="crop" /> Cortar / remover fundo
+            <Icon name="crop" /> Crop / remove background
           </button>
           <div className="button-grid">
-            <button className="btn" onClick={() => p.onElement({ flipX: !el.flipX })}><Icon name="flip" /> Espelhar</button>
-            <button className="btn" onClick={p.onFill}><Icon name="fit" /> Preencher</button>
+            <button className="btn" onClick={() => p.onElement({ flipX: !el.flipX })}><Icon name="flip" /> Flip</button>
+            <button className="btn" onClick={p.onFill}><Icon name="fit" /> Fill</button>
           </div>
         </section>
         <section className="group">
-          <span className="eyebrow">Aparência</span>
-          <Slider label="Cantos" value={Math.round(el.cornerRadius)} min={0} max={Math.round(Math.min(el.width, el.height) / 2)}
+          <span className="eyebrow">Appearance</span>
+          <Slider label="Corners" value={Math.round(el.cornerRadius)} min={0} max={Math.round(Math.min(el.width, el.height) / 2)}
             onChange={(v) => p.onElement({ cornerRadius: v }, 'radius')} />
           {common}
         </section>
@@ -135,7 +135,7 @@ export function Inspector(p: Props) {
 
   return (
     <aside className="glass panel inspector">
-      <header className="panel-header"><h3>Texto</h3></header>
+      <header className="panel-header"><h3>Text</h3></header>
       <section className="group">
         <textarea
           ref={p.textRef}
@@ -157,20 +157,20 @@ export function Inspector(p: Props) {
           <div className="segmented">
             {(['left', 'center', 'right'] as const).map((a) => (
               <button key={a} className={el.align === a ? 'on' : ''} onClick={() => p.onElement({ align: a })}>
-                {a === 'left' ? 'Esq' : a === 'center' ? 'Centro' : 'Dir'}
+                {a === 'left' ? 'Left' : a === 'center' ? 'Centre' : 'Right'}
               </button>
             ))}
           </div>
         </div>
-        <Slider label="Tamanho" value={Math.round(el.fontSize)} min={6} max={Math.round(Math.max(200, el.fontSize * 1.5))}
+        <Slider label="Size" value={Math.round(el.fontSize)} min={6} max={Math.round(Math.max(200, el.fontSize * 1.5))}
           onChange={(v) => p.onElement({ fontSize: v }, 'fontSize')} />
-        <Slider label="Espaçamento" value={el.letterSpacing} min={-5} max={40}
+        <Slider label="Spacing" value={el.letterSpacing} min={-5} max={40}
           onChange={(v) => p.onElement({ letterSpacing: v }, 'spacing')} />
-        <Slider label="Entrelinha" value={el.lineHeight} min={0.7} max={2.5} step={0.05}
+        <Slider label="Line height" value={el.lineHeight} min={0.7} max={2.5} step={0.05}
           onChange={(v) => p.onElement({ lineHeight: v }, 'lineHeight')} />
       </section>
       <section className="group">
-        <span className="eyebrow">Cor</span>
+        <span className="eyebrow">Colour</span>
         <ColorPicker value={el.fill} swatches={TEXT_SWATCHES} onChange={(c) => p.onElement({ fill: c }, 'fill')} />
         {common}
       </section>

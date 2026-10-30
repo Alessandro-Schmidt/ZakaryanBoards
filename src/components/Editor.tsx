@@ -21,12 +21,12 @@ export function Editor({ boardId, onBack }: { boardId: string; onBack(): void })
     );
   }, [boardId]);
 
-  if (initial === undefined) return <div className="center-screen muted">Carregando…</div>;
+  if (initial === undefined) return <div className="center-screen muted">Loading…</div>;
   if (initial === null)
     return (
       <div className="center-screen">
-        <p>Board não encontrado.</p>
-        <button className="btn primary" onClick={onBack}>Voltar</button>
+        <p>Board not found.</p>
+        <button className="btn primary" onClick={onBack}>Back</button>
       </div>
     );
   return <EditorInner initial={initial.board} initialAssets={initial.assets} onBack={onBack} />;
@@ -145,7 +145,7 @@ function EditorInner({ initial, initialAssets, onBack }: { initial: Board; initi
 
   function addText() {
     const el: TextElement = {
-      id: uid(), type: 'text', text: 'Sonhe grande',
+      id: uid(), type: 'text', text: 'Dream big',
       x: w * 0.15, y: h * 0.45, width: w * 0.7, rotation: 0, opacity: 1, shadow: false,
       fontFamily: 'Cormorant Garamond', fontSize: Math.round(w * 0.08), fontStyle: 'italic',
       fill: board.background.toLowerCase() === '#111111' || board.background.toLowerCase() === '#1f2a44' ? '#ffffff' : '#1f2a44',
@@ -225,9 +225,9 @@ function EditorInner({ initial, initialAssets, onBack }: { initial: Board; initi
           placeImages(added, at);
           setToast(null);
         }
-        else notify(added.length > 1 ? `${added.length} imagens adicionadas` : 'Imagem adicionada à biblioteca');
+        else notify(added.length > 1 ? `${added.length} images added` : 'Image added to the library');
       } else if (failed) {
-        notify('Esse site bloqueia arrastar a imagem. Clique com o botão direito → "Copiar imagem" e cole aqui com ⌘V / Ctrl+V.');
+        notify('This site blocks dragging the image. Right-click → "Copy image" and paste here with ⌘V / Ctrl+V.');
       }
     } finally {
       setImporting(false);
@@ -238,8 +238,8 @@ function EditorInner({ initial, initialAssets, onBack }: { initial: Board; initi
     const boards = await listBoards();
     const used = boards.filter((b) => (b.id === board.id ? board : b).elements.some((e) => e.type === 'image' && e.assetId === a.id));
     const msg = used.length
-      ? `Essa imagem está em uso em ${used.length} board(s) e vai sumir deles. Apagar mesmo assim?`
-      : `Apagar "${a.name}" da biblioteca?`;
+      ? `This image is used in ${used.length} board(s) and will disappear from them. Delete anyway?`
+      : `Delete "${a.name}" from the library?`;
     if (!confirm(msg)) return;
     await deleteAsset(a.id);
     setAssets((prev) => prev.filter((x) => x.id !== a.id));
@@ -248,7 +248,7 @@ function EditorInner({ initial, initialAssets, onBack }: { initial: Board; initi
   }
 
   async function saveEditedImage(blob: Blob, source: Asset, elementId?: string) {
-    const asset = await createAsset(blob, source.name.replace(/ \(editada\)$/, '') + ' (editada)', source.id);
+    const asset = await createAsset(blob, source.name.replace(/ \(edited\)$/, '') + ' (edited)', source.id);
     await addAssets([asset]);
     const el = elementId && board.elements.find((e) => e.id === elementId);
     if (el && el.type === 'image') {
@@ -256,7 +256,7 @@ function EditorInner({ initial, initialAssets, onBack }: { initial: Board; initi
       patchElement(el.id, { assetId: asset.id, height, y: el.y + (el.height - height) / 2 });
     }
     setModal(null);
-    if (!elementId) notify('Nova versão salva na biblioteca');
+    if (!elementId) notify('New version saved to the library');
   }
 
   // ---- drag & drop from other tabs / desktop -------------------------------
@@ -349,29 +349,29 @@ function EditorInner({ initial, initialAssets, onBack }: { initial: Board; initi
     <div className="editor" onDragEnter={onDragEnter} onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDrop}>
       <header className="glass toolbar">
         <div className="row gap-s">
-          <button className="btn icon ghost" onClick={back} title="Todos os boards"><Icon name="back" /></button>
+          <button className="btn icon ghost" onClick={back} title="All boards"><Icon name="back" /></button>
           <input
             className="title-input"
             value={board.name}
             onChange={(e) => update({ ...board, name: e.target.value }, 'name')}
-            aria-label="Nome do board"
+            aria-label="Board name"
           />
         </div>
         <div className="row gap-s toolbar-center">
-          <button className="btn icon ghost" disabled={!canUndo} onClick={undo} title="Desfazer (⌘Z)"><Icon name="undo" /></button>
-          <button className="btn icon ghost" disabled={!canRedo} onClick={redo} title="Refazer (⇧⌘Z)"><Icon name="redo" /></button>
+          <button className="btn icon ghost" disabled={!canUndo} onClick={undo} title="Undo (⌘Z)"><Icon name="undo" /></button>
+          <button className="btn icon ghost" disabled={!canRedo} onClick={redo} title="Redo (⇧⌘Z)"><Icon name="redo" /></button>
           <span className="divider" />
-          <button className="btn ghost" onClick={addText}><Icon name="text" /> Texto</button>
+          <button className="btn ghost" onClick={addText}><Icon name="text" /> Text</button>
           <span className="divider" />
-          <button className="btn icon ghost" onClick={() => zoomBy(1 / 1.2)} title="Diminuir zoom"><Icon name="zoomOut" /></button>
-          <button className="btn ghost zoom-label" onClick={() => setZoomMode('fit')} title="Ajustar à tela">
+          <button className="btn icon ghost" onClick={() => zoomBy(1 / 1.2)} title="Zoom out"><Icon name="zoomOut" /></button>
+          <button className="btn ghost zoom-label" onClick={() => setZoomMode('fit')} title="Fit to screen">
             {Math.round(zoom * 100)}%
           </button>
-          <button className="btn icon ghost" onClick={() => zoomBy(1.2)} title="Aumentar zoom"><Icon name="zoomIn" /></button>
+          <button className="btn icon ghost" onClick={() => zoomBy(1.2)} title="Zoom in"><Icon name="zoomIn" /></button>
         </div>
         <div className="row gap-s">
           <button className="btn primary" onClick={() => { setSelectedId(null); setModal({ kind: 'export' }); }}>
-            <Icon name="download" /> Exportar
+            <Icon name="download" /> Export
           </button>
         </div>
       </header>
@@ -404,7 +404,7 @@ function EditorInner({ initial, initialAssets, onBack }: { initial: Board; initi
           </div>
         </div>
         {board.elements.length === 0 && (
-          <div className="canvas-empty">Arraste imagens para cá, ou clique em uma imagem da biblioteca</div>
+          <div className="canvas-empty">Drag images here, or click an image in the library</div>
         )}
       </main>
 
@@ -430,18 +430,18 @@ function EditorInner({ initial, initialAssets, onBack }: { initial: Board; initi
         <div className="drop-overlay">
           <div className="glass drop-card">
             <Icon name="image" size={34} />
-            <strong>Solte para adicionar</strong>
-            <span>Solte sobre a página para já posicionar a imagem</span>
+            <strong>Drop to add</strong>
+            <span>Drop it on the page to place it right there</span>
           </div>
         </div>
       )}
-      {importing && <div className="glass toast">Importando imagem…</div>}
+      {importing && <div className="glass toast">Importing image…</div>}
       {toast && !importing && <div className="glass toast">{toast}</div>}
 
       {modal?.kind === 'image' && (
         <ImageEditor
           asset={modal.asset}
-          saveLabel={modal.elementId ? 'Aplicar no board' : 'Salvar cópia'}
+          saveLabel={modal.elementId ? 'Apply to board' : 'Save copy'}
           onCancel={() => setModal(null)}
           onSave={(blob) => saveEditedImage(blob, modal.asset, modal.elementId)}
         />
@@ -451,16 +451,16 @@ function EditorInner({ initial, initialAssets, onBack }: { initial: Board; initi
         <div className="modal-backdrop" onPointerDown={(e) => e.target === e.currentTarget && setModal(null)}>
           <div className="glass modal">
             <header className="modal-header">
-              <h2>Formato da página</h2>
+              <h2>Page format</h2>
               <button className="btn icon ghost" onClick={() => setModal(null)}><Icon name="close" /></button>
             </header>
             <div className="modal-body">
               <FormatPicker value={modal.spec} onChange={(spec) => setModal({ kind: 'format', spec })} />
-              <p className="muted small">Os elementos são reposicionados proporcionalmente no novo formato.</p>
+              <p className="muted small">Elements are repositioned proportionally to the new format.</p>
             </div>
             <footer className="modal-footer">
-              <button className="btn ghost" onClick={() => setModal(null)}>Cancelar</button>
-              <button className="btn primary" onClick={() => { applyFormat(modal.spec); setModal(null); }}>Aplicar</button>
+              <button className="btn ghost" onClick={() => setModal(null)}>Cancel</button>
+              <button className="btn primary" onClick={() => { applyFormat(modal.spec); setModal(null); }}>Apply</button>
             </footer>
           </div>
         </div>

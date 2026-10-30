@@ -47,17 +47,17 @@ export function ExportDialog({ board, canvasRef, onClose }: {
     <div className="modal-backdrop" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className="glass modal export-modal">
         <header className="modal-header">
-          <h2>Exportar e imprimir</h2>
-          <button className="btn icon ghost" onClick={onClose} aria-label="Fechar"><Icon name="close" /></button>
+          <h2>Export and print</h2>
+          <button className="btn icon ghost" onClick={onClose} aria-label="Close"><Icon name="close" /></button>
         </header>
         <div className="modal-body">
           <div className="field">
-            <span className="eyebrow">Formato do arquivo</span>
+            <span className="eyebrow">File format</span>
             <div className="choice-grid">
               {([
-                ['pdf', 'PDF', 'Ideal para imprimir no tamanho exato'],
-                ['png', 'PNG', 'Máxima qualidade, sem perdas'],
-                ['jpg', 'JPG', 'Arquivo mais leve, ótimo para wallpaper'],
+                ['pdf', 'PDF', 'Best for printing at the exact size'],
+                ['png', 'PNG', 'Highest quality, lossless'],
+                ['jpg', 'JPG', 'Smaller file, great for wallpapers'],
               ] as const).map(([id, label, desc]) => (
                 <button key={id} className={'choice' + (type === id ? ' on' : '')} onClick={() => setType(id)}>
                   <strong>{label}</strong>
@@ -67,12 +67,12 @@ export function ExportDialog({ board, canvasRef, onClose }: {
             </div>
           </div>
           <div className="field">
-            <span className="eyebrow">Qualidade</span>
+            <span className="eyebrow">Quality</span>
             {isPrint ? (
               <div className="segmented">
                 {[150, 300].map((d) => (
                   <button key={d} className={dpi === d ? 'on' : ''} onClick={() => setDpi(d)}>
-                    {d} dpi {d === 300 ? '· gráfica' : '· casa'}
+                    {d} dpi {d === 300 ? '· print shop' : '· home'}
                   </button>
                 ))}
               </div>
@@ -80,27 +80,27 @@ export function ExportDialog({ board, canvasRef, onClose }: {
               <div className="segmented">
                 {[1, 2].map((m) => (
                   <button key={m} className={mult === m ? 'on' : ''} onClick={() => setMult(m)}>
-                    {m}× {m === 1 ? '· nativo da tela' : '· extra nítido'}
+                    {m}× {m === 1 ? '· screen native' : '· extra sharp'}
                   </button>
                 ))}
               </div>
             )}
             <p className="muted small">
-              Saída: {plan.outW} × {plan.outH} px
+              Output: {plan.outW} × {plan.outH} px
               {plan.effectiveDpi ? ` (${plan.effectiveDpi} dpi)` : ''}
-              {plan.capped && ' — reduzido para caber na memória do navegador.'}
+              {plan.capped && ' — reduced to fit in the browser’s memory.'}
             </p>
           </div>
           {isPrint && (
             <p className="note">
-              Na hora de imprimir, escolha <strong>tamanho real / 100%</strong> (sem "ajustar à página") para sair exatamente no formato do board.
+              When printing, choose <strong>actual size / 100%</strong> (not "fit to page") so it comes out at exactly the board’s size.
             </p>
           )}
         </div>
         <footer className="modal-footer">
-          <button className="btn" disabled={busy} onClick={doPrint}><Icon name="printer" /> Imprimir</button>
+          <button className="btn" disabled={busy} onClick={doPrint}><Icon name="printer" /> Print</button>
           <button className="btn primary" disabled={busy} onClick={doExport}>
-            <Icon name="download" /> {busy ? 'Gerando…' : `Baixar ${type.toUpperCase()}`}
+            <Icon name="download" /> {busy ? 'Generating…' : `Download ${type.toUpperCase()}`}
           </button>
         </footer>
       </div>

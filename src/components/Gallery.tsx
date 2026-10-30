@@ -9,7 +9,7 @@ import { Logo } from './Logo';
 import { ThemePicker } from './ThemePicker';
 import { applyTheme, savedThemeId } from '../theme';
 
-const dateFmt = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+const dateFmt = new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
 
 export function Gallery({ onOpen }: { onOpen(id: string): void }) {
   const [boards, setBoards] = useState<Board[] | null>(null);
@@ -46,19 +46,19 @@ export function Gallery({ onOpen }: { onOpen(id: string): void }) {
 
   async function duplicate(b: Board) {
     const now = Date.now();
-    await saveBoard({ ...b, id: uid(), name: `${b.name} (cópia)`, createdAt: now, updatedAt: now });
+    await saveBoard({ ...b, id: uid(), name: `${b.name} (copy)`, createdAt: now, updatedAt: now });
     refresh();
   }
 
   async function rename(b: Board) {
-    const name = prompt('Novo nome do board', b.name)?.trim();
+    const name = prompt('New board name', b.name)?.trim();
     if (!name) return;
     await saveBoard({ ...b, name });
     refresh();
   }
 
   async function remove(b: Board) {
-    if (!confirm(`Apagar "${b.name}"? Essa ação não pode ser desfeita.`)) return;
+    if (!confirm(`Delete "${b.name}"? This can’t be undone.`)) return;
     await deleteBoard(b.id);
     refresh();
   }
@@ -70,13 +70,13 @@ export function Gallery({ onOpen }: { onOpen(id: string): void }) {
           <Logo themeId={theme} size={64} />
           <div>
             <p className="eyebrow">Belvedere</p>
-            <h1>Seus vision boards</h1>
+            <h1>Your vision boards</h1>
           </div>
         </div>
         <div className="row gap-m wrap">
           <ThemePicker value={theme} onChange={pickTheme} />
           <button className="btn primary large" onClick={() => setCreating(true)}>
-            <Icon name="plus" /> Novo board
+            <Icon name="plus" /> New board
           </button>
         </div>
       </header>
@@ -86,10 +86,10 @@ export function Gallery({ onOpen }: { onOpen(id: string): void }) {
           <div className="empty-art">
             <span /><span /><span /><span />
           </div>
-          <h2>Comece o seu 2027</h2>
-          <p>Escolha um formato — A4 para imprimir, tela do celular para wallpaper — e arraste imagens de qualquer aba.</p>
+          <h2>Start your 2027</h2>
+          <p>Pick a format (A4 to print, a phone screen for a wallpaper) and drag in images from any tab.</p>
           <button className="btn primary large" onClick={() => setCreating(true)}>
-            <Icon name="plus" /> Criar o primeiro board
+            <Icon name="plus" /> Create your first board
           </button>
         </div>
       )}
@@ -112,9 +112,9 @@ export function Gallery({ onOpen }: { onOpen(id: string): void }) {
                   </span>
                 </div>
                 <div className="board-actions">
-                  <button className="btn icon ghost small" title="Renomear" onClick={() => rename(b)}><Icon name="edit" size={16} /></button>
-                  <button className="btn icon ghost small" title="Duplicar" onClick={() => duplicate(b)}><Icon name="copy" size={16} /></button>
-                  <button className="btn icon ghost small danger" title="Apagar" onClick={() => remove(b)}><Icon name="trash" size={16} /></button>
+                  <button className="btn icon ghost small" title="Rename" onClick={() => rename(b)}><Icon name="edit" size={16} /></button>
+                  <button className="btn icon ghost small" title="Duplicate" onClick={() => duplicate(b)}><Icon name="copy" size={16} /></button>
+                  <button className="btn icon ghost small danger" title="Delete" onClick={() => remove(b)}><Icon name="trash" size={16} /></button>
                 </div>
               </div>
             </article>

@@ -8,14 +8,14 @@ export function loadImage(src: string, crossOrigin?: string) {
     const img = new Image();
     if (crossOrigin) img.crossOrigin = crossOrigin;
     img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error(`Não foi possível carregar ${src.slice(0, 80)}`));
+    img.onerror = () => reject(new Error(`Couldn’t load ${src.slice(0, 80)}`));
     img.src = src;
   });
 }
 
 export function canvasToBlob(canvas: HTMLCanvasElement, type = 'image/png', quality?: number) {
   return new Promise<Blob>((resolve, reject) =>
-    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Falha ao gerar imagem'))), type, quality),
+    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Couldn’t create the image'))), type, quality),
   );
 }
 
@@ -142,12 +142,12 @@ async function fetchImageBlob(url: string): Promise<Blob> {
 }
 
 function nameFromUrl(url: string) {
-  if (url.startsWith('data:')) return 'Imagem colada';
+  if (url.startsWith('data:')) return 'Pasted image';
   try {
     const last = decodeURIComponent(new URL(url).pathname.split('/').pop() ?? '');
-    return last.replace(/\.[a-z0-9]+$/i, '').slice(0, 40) || 'Imagem da web';
+    return last.replace(/\.[a-z0-9]+$/i, '').slice(0, 40) || 'Web image';
   } catch {
-    return 'Imagem da web';
+    return 'Web image';
   }
 }
 
@@ -160,7 +160,7 @@ export async function importPayload(p: DropPayload): Promise<ImportResult> {
   const assets: Asset[] = [];
   for (const f of p.files) {
     try {
-      assets.push(await createAsset(f, f.name.replace(/\.[a-z0-9]+$/i, '') || 'Imagem'));
+      assets.push(await createAsset(f, f.name.replace(/\.[a-z0-9]+$/i, '') || 'Image'));
     } catch {
       /* skip undecodable file */
     }

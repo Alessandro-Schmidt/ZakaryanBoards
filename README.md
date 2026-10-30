@@ -2,15 +2,13 @@
 
 # Belvedere
 
-A vision board editor made for **real printing** (A4, A3, posters) and for phone, iPad and desktop wallpapers. The look is inspired by Apple's Liquid Glass, with 8 colour themes to pick from under **Aparência** (Appearance). Aurora is the default.
-
-The app's interface is in Portuguese; the labels below are given as they appear in the app.
+A vision board editor made for **real printing** (A4, A3, posters) and for phone, iPad and desktop wallpapers. The look is inspired by Apple's Liquid Glass, with 8 colour themes to pick from under **Appearance**. Aurora is the default.
 
 ## What you can do
 
 - **Real formats**: A4, A3, A5, Letter, 50×70 poster, 30×30 square, iPhone, Android, iPad, Desktop, Instagram 4:5, Stories 9:16 or a custom size (mm or px), in portrait or landscape.
 - **Background colour** from a ready-made palette or any colour.
-- **Drag images from another tab** (or from your computer) straight onto the page. They also go into the **Imagens** (Images) library, which is shared by all boards.
+- **Drag images from another tab** (or from your computer) straight onto the page. They also go into the **Images** library, which is shared by all boards.
   - If a site blocks dragging, right-click → *Copy image* and paste with `⌘V` / `Ctrl+V`.
 - **Edit images** without losing the original (every edit becomes a new version):
   - **Crop**: free, or 1:1, 4:5, 3:4, 2:3, 3:2, 16:9, 9:16 and original.
@@ -18,7 +16,7 @@ The app's interface is in Portuguese; the labels below are given as they appear 
   - **Remove background (AI)**: separates the object from its background automatically, right in the browser.
   - **Erase / Restore**: a brush to refine the cut-out.
 - **Build the board**: move, resize, rotate (snapping to angles), snap to the centre and edges, layers, opacity, rounded corners, shadow, flip, fill the page, and text in elegant fonts.
-- **Export**: PDF at the exact page size (150 or 300 dpi), PNG or JPG. The **Imprimir** (Print) button opens a print-ready PDF.
+- **Export**: PDF at the exact page size (150 or 300 dpi), PNG or JPG. The **Print** button opens a print-ready PDF.
 - **Install as an app**: in Chrome or Edge, use *Install Belvedere* in the address bar; in Safari on Mac, *File → Add to Dock*; on iPhone, *Share → Add to Home Screen*. The icons live in `public/icons` and are generated with `node scripts/generate-icons.cjs`.
 - **Gallery** with all your boards: open, rename, duplicate, delete. Everything saves automatically.
 - Undo/redo (`⌘Z` / `⇧⌘Z`), duplicate (`⌘D`), delete (`⌫`), nudge with the arrow keys (`⇧` = 10 px).

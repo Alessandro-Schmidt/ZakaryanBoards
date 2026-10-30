@@ -19,11 +19,11 @@ export interface Theme {
 export const THEMES: Theme[] = [
   { id: 'aurora', label: 'Aurora', scheme: 'dark', base: '#0a0c1a', ink: '#ffffff', dot: '#ffc84a', lights: ['#6a5cff', '#ff79b4', '#ffd27a'], accent: '#7b6cff' },
   { id: 'arev', label: 'Arev', scheme: 'dark', base: '#1a0b06', ink: '#fff6ea', dot: '#ff4d6d', lights: ['#ff7a2e', '#ffc95c', '#c4164f'], accent: '#ff7a2e' },
-  { id: 'roma', label: 'Romã', scheme: 'dark', base: '#14040a', ink: '#ffe9ee', dot: '#ffb35c', lights: ['#b3123c', '#ff5470', '#f7a35c'], accent: '#ff5470' },
-  { id: 'vitral', label: 'Vitral', scheme: 'dark', base: '#061120', ink: '#f4f7ff', dot: '#f2c14e', lights: ['#1e6bff', '#d0142f', '#f2c14e'], accent: '#3b82ff' },
-  { id: 'ametista', label: 'Ametista', scheme: 'dark', base: '#120c1f', ink: '#f7f1ff', dot: '#ff8fb8', lights: ['#8b5cf6', '#ff8fb8', '#4f46e5'], accent: '#8b5cf6' },
-  { id: 'laguna', label: 'Laguna', scheme: 'dark', base: '#06141a', ink: '#effffb', dot: '#c6f432', lights: ['#22d3c5', '#3b82f6', '#a3e635'], accent: '#14b8a6' },
-  { id: 'perola', label: 'Pérola', scheme: 'light', base: '#eeedf4', ink: '#1b1726', dot: '#7c5cff', lights: ['#c7b8ff', '#ffc2d6', '#a9d8ff'], accent: '#7c5cff' },
+  { id: 'roma', label: 'Pomegranate', scheme: 'dark', base: '#14040a', ink: '#ffe9ee', dot: '#ffb35c', lights: ['#b3123c', '#ff5470', '#f7a35c'], accent: '#ff5470' },
+  { id: 'vitral', label: 'Stained Glass', scheme: 'dark', base: '#061120', ink: '#f4f7ff', dot: '#f2c14e', lights: ['#1e6bff', '#d0142f', '#f2c14e'], accent: '#3b82ff' },
+  { id: 'ametista', label: 'Amethyst', scheme: 'dark', base: '#120c1f', ink: '#f7f1ff', dot: '#ff8fb8', lights: ['#8b5cf6', '#ff8fb8', '#4f46e5'], accent: '#8b5cf6' },
+  { id: 'laguna', label: 'Lagoon', scheme: 'dark', base: '#06141a', ink: '#effffb', dot: '#c6f432', lights: ['#22d3c5', '#3b82f6', '#a3e635'], accent: '#14b8a6' },
+  { id: 'perola', label: 'Pearl', scheme: 'light', base: '#eeedf4', ink: '#1b1726', dot: '#7c5cff', lights: ['#c7b8ff', '#ffc2d6', '#a9d8ff'], accent: '#7c5cff' },
   { id: 'noir', label: 'Noir', scheme: 'dark', base: '#09090b', ink: '#ffffff', dot: '#ff5a4f', lights: ['#ffffff', '#9aa0b4', '#4b4f63'], accent: '#ff5a4f' },
 ];
 

@@ -16,7 +16,7 @@ export function ColorPicker({ value, onChange, swatches = BACKGROUND_SWATCHES }:
           onClick={() => onChange(c)}
         />
       ))}
-      <label className="swatch custom" title="Outra cor">
+      <label className="swatch custom" title="Custom colour">
         <input type="color" value={value} onChange={(e) => onChange(e.target.value)} />
       </label>
     </div>

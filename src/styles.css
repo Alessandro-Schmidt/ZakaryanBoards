@@ -40,7 +40,7 @@
   color-scheme: light;
 }
 
-/* Every theme except Pérola is dark. */
+/* Every theme except Pearl is dark. */
 :root[data-scheme='dark'] {
   --text: #f5f5f7;
   --text-2: rgba(245, 245, 247, 0.66);

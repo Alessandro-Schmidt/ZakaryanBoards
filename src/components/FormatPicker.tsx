@@ -15,9 +15,9 @@ export function specForFormat(id: string, landscape = false): PageSpec {
 }
 
 const GROUPS = [
-  { id: 'print', title: 'Para imprimir' },
-  { id: 'screen', title: 'Para telas' },
-  { id: 'custom', title: 'Sob medida' },
+  { id: 'print', title: 'For print' },
+  { id: 'screen', title: 'For screens' },
+  { id: 'custom', title: 'Custom' },
 ] as const;
 
 export function FormatPicker({ value, onChange }: { value: PageSpec; onChange(v: PageSpec): void }) {
@@ -42,7 +42,7 @@ export function FormatPicker({ value, onChange }: { value: PageSpec; onChange(v:
                     <span style={{ width: f.w * k, height: f.h * k }} />
                   </span>
                   <span className="format-name">{f.label}</span>
-                  <span className="format-size">{f.id === 'custom' ? 'Você define' : formatSizeLabel(f.unit, f.w, f.h)}</span>
+                  <span className="format-size">{f.id === 'custom' ? 'You choose' : formatSizeLabel(f.unit, f.w, f.h)}</span>
                 </button>
               );
             })}
@@ -53,10 +53,10 @@ export function FormatPicker({ value, onChange }: { value: PageSpec; onChange(v:
       <div className="row gap-m wrap">
         <div className="segmented">
           <button className={!landscape ? 'on' : ''} onClick={() => landscape && onChange({ ...value, width: value.height, height: value.width })}>
-            Retrato
+            Portrait
           </button>
           <button className={landscape ? 'on' : ''} onClick={() => !landscape && onChange({ ...value, width: value.height, height: value.width })}>
-            Paisagem
+            Landscape
           </button>
         </div>
         {isCustom && (

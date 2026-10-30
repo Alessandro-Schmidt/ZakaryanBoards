@@ -19,10 +19,10 @@ export function AssetPanel({ assets, onUpload, onAdd, onEdit, onDelete }: Props)
     <aside className="glass panel assets-panel">
       <header className="panel-header">
         <div>
-          <h3>Imagens</h3>
-          <span className="muted">{assets.length ? `${assets.length} na biblioteca` : 'Biblioteca vazia'}</span>
+          <h3>Images</h3>
+          <span className="muted">{assets.length ? `${assets.length} in library` : 'Library is empty'}</span>
         </div>
-        <button className="btn icon" title="Enviar do computador" onClick={() => fileRef.current?.click()}>
+        <button className="btn icon" title="Upload from computer" onClick={() => fileRef.current?.click()}>
           <Icon name="upload" />
         </button>
         <input
@@ -41,7 +41,7 @@ export function AssetPanel({ assets, onUpload, onAdd, onEdit, onDelete }: Props)
       <div className="drop-hint">
         <Icon name="image" size={22} />
         <p>
-          <strong>Arraste imagens</strong> de outra aba ou do computador para cá. Também dá para copiar uma imagem e colar com{' '}
+          <strong>Drag images</strong> here from another tab or your computer. You can also copy an image and paste it with{' '}
           <kbd>⌘V</kbd> / <kbd>Ctrl V</kbd>.
         </p>
       </div>
@@ -57,15 +57,15 @@ export function AssetPanel({ assets, onUpload, onAdd, onEdit, onDelete }: Props)
               e.dataTransfer.effectAllowed = 'copy';
             }}
             onClick={() => onAdd(a)}
-            title={`${a.name} — clique ou arraste para o board`}
+            title={`${a.name} — click or drag onto the board`}
           >
             <img src={assetUrl(a)} alt={a.name} draggable={false} />
             {a.parentId && <span className="badge">editada</span>}
             <div className="asset-actions" onClick={(e) => e.stopPropagation()}>
-              <button className="btn icon tiny" title="Cortar / remover fundo" onClick={() => onEdit(a)}>
+              <button className="btn icon tiny" title="Crop / remove background" onClick={() => onEdit(a)}>
                 <Icon name="crop" size={14} />
               </button>
-              <button className="btn icon tiny danger" title="Apagar da biblioteca" onClick={() => onDelete(a)}>
+              <button className="btn icon tiny danger" title="Delete from library" onClick={() => onDelete(a)}>
                 <Icon name="trash" size={14} />
               </button>
             </div>

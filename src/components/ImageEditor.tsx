@@ -13,7 +13,7 @@ type Handle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w' | 'move' | 'new'
 type AiState = { status: 'idle' } | { status: 'busy'; label: string; progress: number } | { status: 'error'; message: string };
 
 const ASPECTS: { label: string; value: number | null | 'original' }[] = [
-  { label: 'Livre', value: null },
+  { label: 'Free', value: null },
   { label: 'Original', value: 'original' },
   { label: '1:1', value: 1 },
   { label: '4:5', value: 4 / 5 },
@@ -76,7 +76,7 @@ export function ImageEditor({ asset, saveLabel, onCancel, onSave }: Props) {
   const [crop, setCrop] = useState<Rect>({ x: 0, y: 0, w: 0, h: 0 });
   const [tool, setTool] = useState<Tool>('crop');
   const [aspect, setAspect] = useState<number | null>(null);
-  const [aspectLabel, setAspectLabel] = useState('Livre');
+  const [aspectLabel, setAspectLabel] = useState('Free');
   const [lassoMode, setLassoMode] = useState<'keep' | 'remove'>('keep');
   const [brush, setBrush] = useState(36);
   const [maskEdited, setMaskEdited] = useState(false);
@@ -466,7 +466,7 @@ export function ImageEditor({ asset, saveLabel, onCancel, onSave }: Props) {
 
   async function removeBg() {
     const wk = work.current!;
-    setAi({ status: 'busy', label: 'Preparando a IA…', progress: 0 });
+    setAi({ status: 'busy', label: 'Preparing the AI…', progress: 0 });
     try {
       const { removeBackground } = await import('@imgly/background-removal');
       const input = await canvasToBlob(wk.src, 'image/png');
@@ -477,12 +477,12 @@ export function ImageEditor({ asset, saveLabel, onCancel, onSave }: Props) {
           const downloading = key.startsWith('fetch');
           setAi({
             status: 'busy',
-            label: downloading ? 'Baixando o modelo de IA (só na primeira vez)…' : 'Separando o objeto do fundo…',
+            label: downloading ? 'Downloading the AI model (first time only)…' : 'Separating the object from the background…',
             progress: total ? current / total : 0,
           });
         },
       });
-      setAi({ status: 'busy', label: 'Aplicando…', progress: 1 });
+      setAi({ status: 'busy', label: 'Applying…', progress: 1 });
       const url = URL.createObjectURL(result);
       const img = await loadImage(url);
       URL.revokeObjectURL(url);
@@ -499,7 +499,7 @@ export function ImageEditor({ asset, saveLabel, onCancel, onSave }: Props) {
       redraw();
     } catch (err) {
       console.error(err);
-      setAi({ status: 'error', message: 'Não foi possível remover o fundo. Verifique a conexão e tente de novo.' });
+      setAi({ status: 'error', message: 'Couldn’t remove the background. Check your connection and try again.' });
     }
   }
 
@@ -540,28 +540,28 @@ export function ImageEditor({ asset, saveLabel, onCancel, onSave }: Props) {
   });
 
   const TOOLS: { id: Tool; label: string; icon: IconName }[] = [
-    { id: 'crop', label: 'Cortar', icon: 'crop' },
-    { id: 'lasso', label: 'Laço', icon: 'lasso' },
-    { id: 'erase', label: 'Apagar', icon: 'eraser' },
-    { id: 'restore', label: 'Restaurar', icon: 'brush' },
+    { id: 'crop', label: 'Crop', icon: 'crop' },
+    { id: 'lasso', label: 'Lasso', icon: 'lasso' },
+    { id: 'erase', label: 'Erase', icon: 'eraser' },
+    { id: 'restore', label: 'Restore', icon: 'brush' },
   ];
 
   return (
     <div className="modal-backdrop editor-backdrop" onPointerDown={(e) => e.target === e.currentTarget && onCancel()}>
       <div className="glass image-editor">
         <header className="ie-header">
-          <button className="btn ghost" onClick={onCancel}>Cancelar</button>
+          <button className="btn ghost" onClick={onCancel}>Cancel</button>
           <div className="ie-title">
-            <strong>Editar imagem</strong>
+            <strong>Edit image</strong>
             <span>{asset.name}</span>
           </div>
           <div className="row gap-s">
-            <button className="btn icon ghost" title="Desfazer (⌘Z)" onClick={undo}>
+            <button className="btn icon ghost" title="Undo (⌘Z)" onClick={undo}>
               <Icon name="undo" />
             </button>
-            <button className="btn ghost" onClick={reset} title="Desfaz todas as edições">Recomeçar</button>
+            <button className="btn ghost" onClick={reset} title="Undo all edits">Start over</button>
             <button className="btn primary" disabled={!ready || saving || ai.status === 'busy'} onClick={save}>
-              {saving ? 'Salvando…' : saveLabel}
+              {saving ? 'Saving…' : saveLabel}
             </button>
           </div>
         </header>
@@ -577,7 +577,7 @@ export function ImageEditor({ asset, saveLabel, onCancel, onSave }: Props) {
             <div className="ie-sep" />
             <button className="tool-btn ai" disabled={!ready || ai.status === 'busy'} onClick={removeBg}>
               <Icon name="sparkles" />
-              <span>Remover fundo</span>
+              <span>Remove background</span>
             </button>
           </aside>
 
@@ -593,7 +593,7 @@ export function ImageEditor({ asset, saveLabel, onCancel, onSave }: Props) {
               }}
               style={{ cursor: tool === 'lasso' ? 'crosshair' : tool === 'crop' ? 'crosshair' : 'none', touchAction: 'none' }}
             />
-            {!ready && <div className="ie-overlay">Carregando…</div>}
+            {!ready && <div className="ie-overlay">Loading…</div>}
             {ai.status === 'busy' && (
               <div className="ie-overlay">
                 <div className="glass ai-card">
@@ -616,27 +616,27 @@ export function ImageEditor({ asset, saveLabel, onCancel, onSave }: Props) {
                   </button>
                 ))}
               </div>
-              <span className="hint">Arraste para criar ou ajustar o recorte. {Math.round(crop.w)} × {Math.round(crop.h)} px</span>
+              <span className="hint">Drag to create or adjust the crop. {Math.round(crop.w)} × {Math.round(crop.h)} px</span>
             </>
           )}
           {tool === 'lasso' && (
             <>
               <div className="segmented">
-                <button className={lassoMode === 'keep' ? 'on' : ''} onClick={() => setLassoMode('keep')}>Manter seleção</button>
-                <button className={lassoMode === 'remove' ? 'on' : ''} onClick={() => setLassoMode('remove')}>Apagar seleção</button>
+                <button className={lassoMode === 'keep' ? 'on' : ''} onClick={() => setLassoMode('keep')}>Keep selection</button>
+                <button className={lassoMode === 'remove' ? 'on' : ''} onClick={() => setLassoMode('remove')}>Erase selection</button>
               </div>
-              <span className="hint">Contorne o objeto (ex.: só o carro) segurando o clique. As bordas vazias são aparadas ao salvar.</span>
+              <span className="hint">Hold and draw around the object (for example, just the car). Empty edges are trimmed when you save.</span>
             </>
           )}
           {(tool === 'erase' || tool === 'restore') && (
             <>
               <label className="slider-label">
-                Pincel
+                Brush
                 <input type="range" min={6} max={160} value={brush} onChange={(e) => setBrush(+e.target.value)} />
                 <span>{brush}px</span>
               </label>
               <span className="hint">
-                {tool === 'erase' ? 'Pinte para apagar partes da imagem.' : 'Pinte para trazer de volta partes apagadas.'}
+                {tool === 'erase' ? 'Paint to erase parts of the image.' : 'Paint to bring back erased parts.'}
               </span>
             </>
           )}

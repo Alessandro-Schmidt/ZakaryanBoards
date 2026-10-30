@@ -1,8 +1,8 @@
 {
   "name": "Belvedere",
   "short_name": "Belvedere",
-  "description": "Vision boards para imprimir e para wallpaper.",
-  "lang": "pt-BR",
+  "description": "Vision boards for printing and wallpapers.",
+  "lang": "en",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

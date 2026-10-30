@@ -4,16 +4,16 @@ export const FORMATS: BoardFormat[] = [
   { id: 'a4', label: 'A4', group: 'print', unit: 'mm', w: 210, h: 297 },
   { id: 'a3', label: 'A3', group: 'print', unit: 'mm', w: 297, h: 420 },
   { id: 'a5', label: 'A5', group: 'print', unit: 'mm', w: 148, h: 210 },
-  { id: 'letter', label: 'Carta (US Letter)', group: 'print', unit: 'mm', w: 215.9, h: 279.4 },
-  { id: 'poster', label: 'Pôster 50 × 70', group: 'print', unit: 'mm', w: 500, h: 700 },
-  { id: 'square30', label: 'Quadrado 30 × 30', group: 'print', unit: 'mm', w: 300, h: 300 },
+  { id: 'letter', label: 'US Letter', group: 'print', unit: 'mm', w: 215.9, h: 279.4 },
+  { id: 'poster', label: 'Poster 50 × 70', group: 'print', unit: 'mm', w: 500, h: 700 },
+  { id: 'square30', label: 'Square 30 × 30', group: 'print', unit: 'mm', w: 300, h: 300 },
   { id: 'iphone', label: 'iPhone', group: 'screen', unit: 'px', w: 1179, h: 2556 },
   { id: 'android', label: 'Android', group: 'screen', unit: 'px', w: 1080, h: 2400 },
   { id: 'ipad', label: 'iPad', group: 'screen', unit: 'px', w: 1640, h: 2360 },
   { id: 'desktop', label: 'Desktop / Mac', group: 'screen', unit: 'px', w: 2560, h: 1440 },
   { id: 'post', label: 'Instagram 4:5', group: 'screen', unit: 'px', w: 1080, h: 1350 },
   { id: 'story', label: 'Stories 9:16', group: 'screen', unit: 'px', w: 1080, h: 1920 },
-  { id: 'custom', label: 'Personalizado', group: 'custom', unit: 'mm', w: 200, h: 200 },
+  { id: 'custom', label: 'Custom', group: 'custom', unit: 'mm', w: 200, h: 200 },
 ];
 
 export const formatById = (id: string) => FORMATS.find((f) => f.id === id) ?? FORMATS[0];

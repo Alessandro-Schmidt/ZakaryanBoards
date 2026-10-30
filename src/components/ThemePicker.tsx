@@ -21,11 +21,11 @@ export function ThemePicker({ value, onChange }: { value: string; onChange(id: s
   return (
     <div className="theme-picker" ref={ref}>
       <button className="btn large" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-haspopup="true">
-        <Logo themeId={value} size={22} /> Aparência
+        <Logo themeId={value} size={22} /> Appearance
       </button>
       {open && (
         <div className="glass theme-menu" role="menu">
-          <p className="eyebrow">Cores do Belvedere</p>
+          <p className="eyebrow">Belvedere colours</p>
           <div className="theme-grid">
             {THEMES.map((t) => (
               <button
