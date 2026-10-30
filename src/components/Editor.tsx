@@ -214,14 +214,14 @@ function EditorInner({ initial, initialAssets, onBack }: { initial: Board; initi
     setAssets((prev) => [...list, ...prev]);
   }
 
-  async function handleImport(payload: DropPayload, at?: { x: number; y: number }) {
+  async function handleImport(payload: DropPayload, at?: { x: number; y: number }, place = !!at) {
     if (!payload.files.length && !payload.urls.length) return;
     setImporting(true);
     try {
       const { assets: added, failed } = await importPayload(payload);
       if (added.length) {
         await addAssets(added);
-        if (at) {
+        if (place) {
           placeImages(added, at);
           setToast(null);
         }
@@ -303,7 +303,7 @@ function EditorInner({ initial, initialAssets, onBack }: { initial: Board; initi
       const payload = readDataTransfer(e.clipboardData);
       if (payload.files.length || payload.urls.length) {
         e.preventDefault();
-        handlers.current.handleImport(payload);
+        handlers.current.handleImport(payload, undefined, true);
       }
     };
     const onKey = (e: KeyboardEvent) => {

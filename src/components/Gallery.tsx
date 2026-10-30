@@ -58,7 +58,7 @@ export function Gallery({ onOpen }: { onOpen(id: string): void }) {
     <div className="gallery">
       <header className="gallery-header">
         <div>
-          <p className="eyebrow">Zakaryan Boards</p>
+          <p className="eyebrow">ElenStudio</p>
           <h1>Seus vision boards</h1>
         </div>
         <button className="btn primary large" onClick={() => setCreating(true)}>

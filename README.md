@@ -1,4 +1,4 @@
-# Zakaryan Boards
+# ElenStudio
 
 Editor de vision boards feito para **imprimir de verdade** — A4, A3, pôster — e também para wallpaper de celular, iPad e desktop. Visual inspirado no Liquid Glass da Apple.
 
