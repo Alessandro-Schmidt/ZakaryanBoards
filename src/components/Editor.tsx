@@ -3,6 +3,7 @@ import type { Asset, Board, BoardElement, ImageElement, TextElement } from '../t
 import { boardPixelSize } from '../formats';
 import { deleteAsset, getBoard, listAssets, listBoards, saveAsset, saveBoard } from '../lib/db';
 import { createAsset, importPayload, readDataTransfer, type DropPayload } from '../lib/images';
+import { arrange } from '../lib/arrange';
 import { useBoardHistory } from '../lib/history';
 import { uid } from '../lib/id';
 import { AssetPanel, ASSET_MIME } from './AssetPanel';
@@ -214,6 +215,21 @@ function EditorInner({ initial, initialAssets, onBack }: { initial: Board; initi
     patchElement(selected.id, { width, height, x: (w - width) / 2, y: (h - height) / 2, rotation: 0 });
   }
 
+  /** Lays every image out in tidy rows that fit the page without overlapping. Texts stay where they are. */
+  function makeItFit() {
+    const images = board.elements.filter((e): e is ImageElement => e.type === 'image');
+    if (!images.length) return;
+    // Keep the reading order the user already has: top to bottom, then left to right.
+    const order = [...images].sort((a, b) => a.y + a.height / 2 - (b.y + b.height / 2) || a.x - b.x);
+    const boxes = arrange(order, w, h);
+    const placed = new Map(order.map((e, i) => [e.id, boxes[i]]));
+    setElements(board.elements.map((e) => {
+      const b = placed.get(e.id);
+      return b ? { ...e, ...b, rotation: 0 } : e;
+    }));
+    notify(`${images.length} image${images.length > 1 ? 's' : ''} arranged · ⌘Z to undo`);
+  }
+
   function applyFormat(spec: PageSpec) {
     const old = boardPixelSize(board);
     const next = boardPixelSize(spec);
@@ -398,6 +414,14 @@ function EditorInner({ initial, initialAssets, onBack }: { initial: Board; initi
           <button className="btn icon ghost" disabled={!canRedo} onClick={redo} title="Redo (⇧⌘Z)"><Icon name="redo" /></button>
           <span className="divider" />
           <button className="btn ghost" onClick={addText}><Icon name="text" /> Text</button>
+          <button
+            className="btn ghost"
+            onClick={makeItFit}
+            disabled={!board.elements.some((e) => e.type === 'image')}
+            title="Arrange all images so they fit the page without overlapping"
+          >
+            <Icon name="arrange" /> Make it fit
+          </button>
           <span className="divider" />
           <button className="btn icon ghost" onClick={() => zoomBy(1 / 1.2)} title="Zoom out"><Icon name="zoomOut" /></button>
           <button className="btn ghost zoom-label" onClick={() => setZoomMode('fit')} title="Fit to screen">
