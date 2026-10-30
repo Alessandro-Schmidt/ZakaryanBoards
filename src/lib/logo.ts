@@ -13,16 +13,29 @@ function mix(a: string, b: string, t: number) {
   return `rgb(${x.map((v, i) => Math.round(v + (y[i] - v) * t)).join(',')})`;
 }
 
+/**
+ * How the icon fills its square:
+ * - rounded: our own rounded corners, transparent outside (favicon, in-app, desktop installs)
+ * - square: full bleed, for iOS, which rounds the corners itself
+ * - maskable: full bleed with the artwork shrunk into the safe zone, for Android and Chrome masks
+ */
+export type LogoShape = 'rounded' | 'square' | 'maskable';
+
 /** Draws the Belvedere app icon — blurred spheres of light and "B." — into a square of `size` px. */
-export function drawLogo(ctx: CanvasRenderingContext2D, size: number, t: Theme) {
-  const s = size;
+export function drawLogo(ctx: CanvasRenderingContext2D, size: number, t: Theme, shape: LogoShape = 'rounded') {
   ctx.save();
-  ctx.clearRect(0, 0, s, s);
-  ctx.beginPath();
-  ctx.roundRect(0, 0, s, s, s * 0.225);
-  ctx.clip();
+  ctx.clearRect(0, 0, size, size);
+  if (shape === 'rounded') {
+    ctx.beginPath();
+    ctx.roundRect(0, 0, size, size, size * 0.225);
+    ctx.clip();
+  }
   ctx.fillStyle = t.base;
-  ctx.fillRect(0, 0, s, s);
+  ctx.fillRect(0, 0, size, size);
+  // Maskable icons may be cut to a circle of 80% diameter, so keep "B." well inside it.
+  const inset = shape === 'maskable' ? size * 0.14 : 0;
+  ctx.translate(inset, inset);
+  const s = size - inset * 2;
 
   ctx.filter = `blur(${Math.max(0.6, s * 0.05)}px)`;
   ctx.globalCompositeOperation = t.scheme === 'light' ? 'multiply' : 'screen';
@@ -56,6 +69,7 @@ export function drawLogo(ctx: CanvasRenderingContext2D, size: number, t: Theme) 
   ctx.fill();
 
   // Thin glass edge.
+  if (shape !== 'rounded') return ctx.restore();
   ctx.strokeStyle = t.scheme === 'light' ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.18)';
   ctx.lineWidth = Math.max(1, s * 0.008);
   ctx.beginPath();

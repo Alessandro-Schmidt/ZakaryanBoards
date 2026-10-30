@@ -15,6 +15,7 @@ Editor de vision boards feito para **imprimir de verdade** — A4, A3, pôster �
   - **Apagar / Restaurar**: pincel para refinar o recorte.
 - **Montar o board**: mover, redimensionar, girar (com encaixe nos ângulos), encaixe no centro e nas bordas, camadas, opacidade, cantos arredondados, sombra, espelhar, preencher a página, textos com fontes elegantes.
 - **Exportar**: PDF no tamanho exato da página (150 ou 300 dpi), PNG ou JPG. O botão **Imprimir** abre o PDF pronto para a impressora.
+- **Instalar como app**: no Chrome/Edge, use *Instalar Belvedere* na barra de endereço; no Safari do Mac, *Arquivo → Adicionar ao Dock*; no iPhone, *Compartilhar → Adicionar à Tela de Início*. Os ícones ficam em `public/icons` e são gerados com `node scripts/generate-icons.cjs`.
 - **Galeria** com todos os boards: abrir, renomear, duplicar, apagar. Tudo é salvo automaticamente.
 - Desfazer/refazer (`⌘Z` / `⇧⌘Z`), duplicar (`⌘D`), apagar (`⌫`), mover com as setas (`⇧` = 10 px).
 
