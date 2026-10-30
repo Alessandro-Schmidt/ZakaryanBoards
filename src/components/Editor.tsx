@@ -43,6 +43,17 @@ function isTyping(e: Event) {
   return !!t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable);
 }
 
+type Panels = { left: boolean; right: boolean };
+const PANELS_KEY = 'belvedere-panels';
+
+function savedPanels(): Panels {
+  try {
+    return { left: true, right: true, ...JSON.parse(localStorage.getItem(PANELS_KEY) ?? '{}') };
+  } catch {
+    return { left: true, right: true };
+  }
+}
+
 function EditorInner({ initial, initialAssets, onBack }: { initial: Board; initialAssets: Asset[]; onBack(): void }) {
   const { board, update, undo, redo, canUndo, canRedo } = useBoardHistory(initial);
   const [assets, setAssets] = useState(initialAssets);
@@ -52,6 +63,18 @@ function EditorInner({ initial, initialAssets, onBack }: { initial: Board; initi
   const [toast, setToast] = useState<string | null>(null);
   const [dropActive, setDropActive] = useState(false);
   const [importing, setImporting] = useState(false);
+  // The side panels slide out so the board can use the whole window.
+  const [panels, setPanels] = useState(savedPanels);
+  const togglePanel = (side: keyof Panels) =>
+    setPanels((p) => {
+      const next = { ...p, [side]: !p[side] };
+      try {
+        localStorage.setItem(PANELS_KEY, JSON.stringify(next));
+      } catch {
+        /* private mode: still toggles for this visit */
+      }
+      return next;
+    });
   const canvasRef = useRef<BoardCanvasHandle>(null);
   const areaRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLTextAreaElement>(null);
@@ -294,8 +317,8 @@ function EditorInner({ initial, initialAssets, onBack }: { initial: Board; initi
   }
 
   // ---- paste & keyboard ---------------------------------------------------------
-  const handlers = useRef({ handleImport, removeSelected, duplicateSelected, undo, redo, patchElement, selected, modal });
-  handlers.current = { handleImport, removeSelected, duplicateSelected, undo, redo, patchElement, selected, modal };
+  const handlers = useRef({ handleImport, removeSelected, duplicateSelected, undo, redo, patchElement, selected, modal, togglePanel });
+  handlers.current = { handleImport, removeSelected, duplicateSelected, undo, redo, patchElement, selected, modal, togglePanel };
 
   useEffect(() => {
     const onPaste = (e: ClipboardEvent) => {
@@ -326,6 +349,9 @@ function EditorInner({ initial, initialAssets, onBack }: { initial: Board; initi
           e.preventDefault();
           H.removeSelected();
         }
+      } else if (!mod && (e.key === '[' || e.key === ']')) {
+        e.preventDefault();
+        H.togglePanel(e.key === '[' ? 'left' : 'right');
       } else if (e.key === 'Escape') {
         setSelectedId(null);
       } else if (H.selected && e.key.startsWith('Arrow')) {
@@ -346,10 +372,20 @@ function EditorInner({ initial, initialAssets, onBack }: { initial: Board; initi
 
   // ---- render -------------------------------------------------------------------
   return (
-    <div className="editor" onDragEnter={onDragEnter} onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDrop}>
+    <div
+      className={'editor' + (panels.left ? '' : ' hide-left') + (panels.right ? '' : ' hide-right')}
+      onDragEnter={onDragEnter} onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDrop}>
       <header className="glass toolbar">
         <div className="row gap-s">
           <button className="btn icon ghost" onClick={back} title="All boards"><Icon name="back" /></button>
+          <button
+            className={'btn icon ghost panel-toggle' + (panels.left ? ' on' : '')}
+            onClick={() => togglePanel('left')}
+            aria-pressed={panels.left}
+            title={panels.left ? 'Hide images ([)' : 'Show images ([)'}
+          >
+            <Icon name="sidebarLeft" />
+          </button>
           <input
             className="title-input"
             value={board.name}
@@ -372,6 +408,14 @@ function EditorInner({ initial, initialAssets, onBack }: { initial: Board; initi
         <div className="row gap-s">
           <button className="btn primary" onClick={() => { setSelectedId(null); setModal({ kind: 'export' }); }}>
             <Icon name="download" /> Export
+          </button>
+          <button
+            className={'btn icon ghost panel-toggle' + (panels.right ? ' on' : '')}
+            onClick={() => togglePanel('right')}
+            aria-pressed={panels.right}
+            title={panels.right ? 'Hide board settings (])' : 'Show board settings (])'}
+          >
+            <Icon name="sidebarRight" />
           </button>
         </div>
       </header>

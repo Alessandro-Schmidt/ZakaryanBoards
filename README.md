@@ -19,6 +19,7 @@ A vision board editor made for **real printing** (A4, A3, posters) and for phone
 - **Export**: PDF at the exact page size (150 or 300 dpi), PNG or JPG. The **Print** button opens a print-ready PDF.
 - **Install as an app**: in Chrome or Edge, use *Install Belvedere* in the address bar; in Safari on Mac, *File → Add to Dock*; on iPhone, *Share → Add to Home Screen*. The icons live in `public/icons` and are generated with `node scripts/generate-icons.cjs`.
 - **Gallery** with all your boards: open, rename, duplicate, delete. Everything saves automatically.
+- **Full canvas**: slide the images panel and the board settings away with the buttons at either end of the toolbar, or with `[` and `]`, and bring them back the same way.
 - Undo/redo (`⌘Z` / `⇧⌘Z`), duplicate (`⌘D`), delete (`⌫`), nudge with the arrow keys (`⇧` = 10 px).
 
 ## Running locally

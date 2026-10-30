@@ -397,9 +397,13 @@ input[type='range']::-moz-range-thumb { width: 22px; height: 22px; border-radius
    Editor
    ========================================================================== */
 .editor {
+  --left-w: 272px;
+  --right-w: 292px;
+  --slide: 0.42s cubic-bezier(0.32, 0.72, 0, 1);
   height: 100%;
   display: grid;
-  grid-template-columns: 272px minmax(0, 1fr) 292px;
+  grid-template-columns: var(--left-w) minmax(0, 1fr) var(--right-w);
+  transition: grid-template-columns var(--slide), column-gap var(--slide);
   grid-template-rows: auto minmax(0, 1fr);
   grid-template-areas: 'toolbar toolbar toolbar' 'assets canvas inspector';
   gap: 12px;
@@ -424,6 +428,25 @@ input[type='range']::-moz-range-thumb { width: 22px; height: 22px; border-radius
 .panel-header .muted { font-size: 12.5px; }
 .assets-panel { grid-area: assets; }
 .inspector { grid-area: inspector; overflow-y: auto; }
+
+/* ---- Collapsible side panels: they slide off their own edge and the canvas takes the room. */
+.assets-panel, .inspector { transition: transform var(--slide), opacity 0.3s ease, visibility 0s linear 0s; }
+.assets-panel { width: var(--left-w); justify-self: end; }
+.inspector { width: var(--right-w); }
+.editor.hide-left { grid-template-columns: 0px minmax(0, 1fr) var(--right-w); }
+.editor.hide-right { grid-template-columns: var(--left-w) minmax(0, 1fr) 0px; }
+.editor.hide-left.hide-right { grid-template-columns: 0px minmax(0, 1fr) 0px; }
+.editor.hide-left .assets-panel { transform: translateX(calc(-100% - 24px)); }
+.editor.hide-right .inspector { transform: translateX(calc(100% + 24px)); }
+.editor.hide-left .assets-panel, .editor.hide-right .inspector {
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: transform var(--slide), opacity 0.3s ease, visibility 0s linear 0.42s;
+}
+.panel-toggle { color: var(--text-3); }
+.panel-toggle.on { color: var(--text); }
+@media (prefers-reduced-motion: reduce) {
+  .editor, .assets-panel, .inspector { transition: none !important; }
+}
 
 .drop-hint {
   display: flex; gap: 10px; align-items: flex-start; padding: 12px; border-radius: 16px;
@@ -533,7 +556,7 @@ input[type='range']::-moz-range-thumb { width: 22px; height: 22px; border-radius
 
 /* ---- Small screens ------------------------------------------------------------- */
 @media (max-width: 1100px) {
-  .editor { grid-template-columns: 220px minmax(0, 1fr) 250px; }
+  .editor { --left-w: 220px; --right-w: 250px; }
   .toolbar-center { position: static; transform: none; }
   .title-input { width: 160px; }
 }
@@ -545,6 +568,10 @@ input[type='range']::-moz-range-thumb { width: 22px; height: 22px; border-radius
     grid-template-rows: auto 62vh auto auto;
     grid-template-areas: 'toolbar' 'canvas' 'inspector' 'assets';
   }
+  /* Stacked layout: panels sit below the canvas, so there is nothing to collapse. */
+  .editor.hide-left, .editor.hide-right, .editor.hide-left.hide-right { grid-template-columns: 1fr; }
+  .editor .assets-panel, .editor .inspector { width: auto; transform: none !important; opacity: 1 !important; visibility: visible !important; pointer-events: auto !important; }
+  .panel-toggle { display: none; }
   .toolbar { border-radius: 24px; flex-wrap: wrap; }
   .asset-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
   .choice-grid { grid-template-columns: 1fr; }

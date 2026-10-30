@@ -72,6 +72,7 @@ export function Inspector(p: Props) {
             <li>Drag images from another tab straight onto the page.</li>
             <li>Double-click a text to edit it.</li>
             <li><kbd>⌘Z</kbd> undo, <kbd>⌘D</kbd> duplicate, <kbd>⌫</kbd> delete.</li>
+            <li><kbd>[</kbd> and <kbd>]</kbd> hide or show the side panels.</li>
             <li>Drag the handles to rotate and resize; elements snap to the centre and edges.</li>
           </ul>
         </section>
