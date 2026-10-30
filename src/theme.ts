@@ -75,12 +75,10 @@ async function updateFavicon(t: Theme) {
   const c = document.createElement('canvas');
   c.width = c.height = 64;
   drawLogo(c.getContext('2d')!, 64, t);
-  let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
-  if (!link) {
-    link = document.createElement('link');
-    link.rel = 'icon';
-    document.head.appendChild(link);
-  }
-  link.type = 'image/png';
-  link.href = c.toDataURL('image/png');
+  const href = c.toDataURL('image/png');
+  // index.html ships an SVG and a PNG favicon in Aurora; point both at the current theme.
+  document.querySelectorAll<HTMLLinkElement>('link[rel="icon"]').forEach((link) => {
+    link.type = 'image/png';
+    link.href = href;
+  });
 }
