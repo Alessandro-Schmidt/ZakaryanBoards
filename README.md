@@ -1,41 +1,45 @@
+![Belvedere. Vision boards, made to print. A beautiful view of what's next.](docs/banner.png)
+
 # Belvedere
 
-Editor de vision boards feito para **imprimir de verdade** — A4, A3, pôster — e também para wallpaper de celular, iPad e desktop. Visual inspirado no Liquid Glass da Apple, com 8 paletas de cores para escolher em **Aparência** (Aurora é a padrão).
+A vision board editor made for **real printing** (A4, A3, posters) and for phone, iPad and desktop wallpapers. The look is inspired by Apple's Liquid Glass, with 8 colour themes to pick from under **Aparência** (Appearance). Aurora is the default.
 
-## O que dá para fazer
+The app's interface is in Portuguese; the labels below are given as they appear in the app.
 
-- **Formatos reais**: A4, A3, A5, Carta, Pôster 50×70, Quadrado 30×30, iPhone, Android, iPad, Desktop, Instagram 4:5, Stories 9:16 ou tamanho personalizado (mm ou px), em retrato ou paisagem.
-- **Cor de fundo** com paleta pronta ou qualquer cor.
-- **Arrastar imagens de outra aba** (ou do computador) direto para a página. Elas também entram na biblioteca **Imagens**, que é compartilhada entre todos os boards.
-  - Se algum site bloquear o arrasto, clique com o botão direito → *Copiar imagem* e cole com `⌘V` / `Ctrl+V`.
-- **Editar imagens** sem perder a original (cada edição vira uma nova versão):
-  - **Cortar**: livre ou nas proporções 1:1, 4:5, 3:4, 2:3, 3:2, 16:9, 9:16 e original.
-  - **Laço**: contorne só o objeto (por exemplo, só o carro) para mantê-lo ou apagá-lo.
-  - **Remover fundo (IA)**: separa o objeto do fundo automaticamente, direto no navegador.
-  - **Apagar / Restaurar**: pincel para refinar o recorte.
-- **Montar o board**: mover, redimensionar, girar (com encaixe nos ângulos), encaixe no centro e nas bordas, camadas, opacidade, cantos arredondados, sombra, espelhar, preencher a página, textos com fontes elegantes.
-- **Exportar**: PDF no tamanho exato da página (150 ou 300 dpi), PNG ou JPG. O botão **Imprimir** abre o PDF pronto para a impressora.
-- **Instalar como app**: no Chrome/Edge, use *Instalar Belvedere* na barra de endereço; no Safari do Mac, *Arquivo → Adicionar ao Dock*; no iPhone, *Compartilhar → Adicionar à Tela de Início*. Os ícones ficam em `public/icons` e são gerados com `node scripts/generate-icons.cjs`.
-- **Galeria** com todos os boards: abrir, renomear, duplicar, apagar. Tudo é salvo automaticamente.
-- Desfazer/refazer (`⌘Z` / `⇧⌘Z`), duplicar (`⌘D`), apagar (`⌫`), mover com as setas (`⇧` = 10 px).
+## What you can do
 
-## Rodando localmente
+- **Real formats**: A4, A3, A5, Letter, 50×70 poster, 30×30 square, iPhone, Android, iPad, Desktop, Instagram 4:5, Stories 9:16 or a custom size (mm or px), in portrait or landscape.
+- **Background colour** from a ready-made palette or any colour.
+- **Drag images from another tab** (or from your computer) straight onto the page. They also go into the **Imagens** (Images) library, which is shared by all boards.
+  - If a site blocks dragging, right-click → *Copy image* and paste with `⌘V` / `Ctrl+V`.
+- **Edit images** without losing the original (every edit becomes a new version):
+  - **Crop**: free, or 1:1, 4:5, 3:4, 2:3, 3:2, 16:9, 9:16 and original.
+  - **Lasso**: draw around just the object (say, only the car) to keep it or erase it.
+  - **Remove background (AI)**: separates the object from its background automatically, right in the browser.
+  - **Erase / Restore**: a brush to refine the cut-out.
+- **Build the board**: move, resize, rotate (snapping to angles), snap to the centre and edges, layers, opacity, rounded corners, shadow, flip, fill the page, and text in elegant fonts.
+- **Export**: PDF at the exact page size (150 or 300 dpi), PNG or JPG. The **Imprimir** (Print) button opens a print-ready PDF.
+- **Install as an app**: in Chrome or Edge, use *Install Belvedere* in the address bar; in Safari on Mac, *File → Add to Dock*; on iPhone, *Share → Add to Home Screen*. The icons live in `public/icons` and are generated with `node scripts/generate-icons.cjs`.
+- **Gallery** with all your boards: open, rename, duplicate, delete. Everything saves automatically.
+- Undo/redo (`⌘Z` / `⇧⌘Z`), duplicate (`⌘D`), delete (`⌫`), nudge with the arrow keys (`⇧` = 10 px).
+
+## Running locally
 
 ```bash
 npm install
 npm run dev
 ```
 
-Abra http://localhost:5173.
+Open http://localhost:5173.
 
-## Publicando (GitHub Pages)
+## Publishing (GitHub Pages)
 
-O workflow `.github/workflows/deploy.yml` publica o site a cada push na `main`. Para ativar uma vez: **Settings → Pages → Source: GitHub Actions**.
+The `.github/workflows/deploy.yml` workflow publishes the site on every push to `main`. To turn it on once: **Settings → Pages → Source: GitHub Actions**.
 
-## Onde ficam os dados
+## Where your data lives
 
-Boards e imagens ficam salvos **no navegador** (IndexedDB) do dispositivo em que foram criados — nada vai para servidor. Limpar os dados do site apaga os boards.
+Boards and images are saved **in the browser** (IndexedDB) on the device where they were made. Nothing is sent to a server. Clearing the site's data deletes the boards.
 
-## Tecnologia
+## Tech
 
-React + TypeScript + Vite, [Konva](https://konvajs.org/) para o canvas, [jsPDF](https://github.com/parallax/jsPDF) para PDF e [@imgly/background-removal](https://github.com/imgly/background-removal-js) para a remoção de fundo (o modelo de IA é baixado da CDN da IMG.LY no primeiro uso e fica em cache). Atenção: essa biblioteca é AGPL-3.0, o que não é problema para uso pessoal, mas pede cuidado se o projeto virar produto.
+React + TypeScript + Vite, [Konva](https://konvajs.org/) for the canvas, [jsPDF](https://github.com/parallax/jsPDF) for PDFs and [@imgly/background-removal](https://github.com/imgly/background-removal-js) for background removal (the AI model is downloaded from IMG.LY's CDN on first use and then cached). Note: that library is AGPL-3.0. That's fine for personal use, but needs care if the project ever becomes a product.
